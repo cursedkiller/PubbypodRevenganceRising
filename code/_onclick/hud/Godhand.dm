@@ -36,11 +36,3 @@
 	mymob.client.screen = null
 
 	mymob.client.screen += list(deity_health_display, deity_power_display, deity_follower_display)
-  /mob/camera/god/UnarmedAttack(atom/A)
-	A.attack_god(src)
-
-/mob/camera/god/RangedAttack(atom/A)
-	A.attack_god(src)
-
-/atom/proc/attack_god(mob/user)
-	return
