@@ -1,0 +1,20 @@
+//Hand of God
+
+#define ui_deityhealth "EAST-1:28,CENTER-2:13"
+#define ui_deitypower	"EAST-1:28,CENTER-1:15"
+#define ui_deityfollowers "EAST-1:28,CENTER:17"
+
+/datum/hud
+	var/mob/mymob
+
+	var/hud_shown = 1			//Used for the HUD toggle (F12)
+	var/hud_version = 1			//Current displayed version of the HUD
+	var/inventory_shown = 1		//the inventory
+	var/show_intent_icons = 0
+	var/hotkey_ui_hidden = 0	//This is to hide the buttons that can be used via hotkeys. (hotkeybuttons list of buttons)
+
+	var/obj/screen/deity_health_display
+	var/obj/screen/deity_power_display
+	var/obj/screen/deity_follower_display
+
+  
