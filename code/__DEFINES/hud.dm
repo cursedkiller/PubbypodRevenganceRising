@@ -110,6 +110,10 @@
 #define ui_borg_language_menu "CENTER+4:19,SOUTH+1:6"
 #define ui_borg_navigate_menu "CENTER+4:19,SOUTH+1:6"
 
+//Godhand
+#define ANTAG_HUD_HOG_BLUE 11
+#define ANTAG_HUD_HOG_RED 12
+
 //AI
 #define ui_ai_core "SOUTH:6,WEST"
 #define ui_ai_camera_list "SOUTH:6,WEST+1"
