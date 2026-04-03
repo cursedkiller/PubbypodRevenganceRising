@@ -53,6 +53,8 @@
 #define ROLE_PRISONER "Prisoner"
 #define ROLE_WIZARD_APPRENTICE "Apprentice"
 #define ROLE_VAMPIRE "Vampire"
+#define ROLE_HOG_GOD "hand of god: god"
+#define ROLE_HOG_CULTIST "hand of god: cultist"
 
 /// Roles that are antagonists, roundstart or not, and have passes to do.. antagonistry
 GLOBAL_LIST_INIT(antagonist_bannable_roles, list(
@@ -90,6 +92,8 @@ GLOBAL_LIST_INIT(antagonist_bannable_roles, list(
 	ROLE_SLAUGHTER_DEMON,
 	ROLE_CONTRACTOR_SUPPORT_UNIT,
 	ROLE_VAMPIRE,
+	ROLE_HOG_GOD = /datum/game_mode/hand_of_god,
+	ROLE_HOG_CULTIST = /datum/game_mode/hand_of_god,
 ))
 
 #define BAN_ROLE_FORCED_ANTAGONISTS			"Forced Antagonists"
