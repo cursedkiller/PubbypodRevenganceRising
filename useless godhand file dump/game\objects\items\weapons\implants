@@ -1,0 +1,3 @@
+		if(target.mind in ticker.mode.red_deity_followers|ticker.mode.blue_deity_followers)
+			ticker.mode.remove_hog_follower(target.mind)
+		if((target.mind in ticker.mode.cult) || (target.mind in ticker.mode.blue_deity_prophets|ticker.mode.red_deity_prophets))
