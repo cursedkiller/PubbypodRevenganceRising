@@ -53,7 +53,6 @@
 	return ..()
 
 /mob/living/simple_animal/hostile/bosses/evilpope/handle_automated_action()
-	. = ..()
 		if(magic_missile.is_available())
 			magic_missile.pre_activate(src, target)
 			next_cast = world.time + 2 SECONDS
