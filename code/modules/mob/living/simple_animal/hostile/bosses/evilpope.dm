@@ -1,4 +1,4 @@
-/mob/living/simple_animal/hostile/bosses/spacepope
+/mob/living/simple_animal/hostile/bosses/evilpope
 	name = "Space Pope"
 	desc = "EI NATH?"
 	icon = 'icons/mob/evilpope.dmi'
@@ -33,7 +33,7 @@
 
 	discovery_points = 13000
 
-/mob/living/simple_animal/hostile/bosses/spacepope/Initialize(mapload)
+/mob/living/simple_animal/hostile/bosses/evilpope/Initialize(mapload)
 	. = ..()
 	var/obj/item/implant/exile/exiled = new /obj/item/implant/exile(src)
 	exiled.implant(src)
@@ -47,12 +47,12 @@
 	blink.outer_tele_radius = 3
 	blink.Grant(src)
 
-/mob/living/simple_animal/hostile/bosses/spacepope/Destroy()
+/mob/living/simple_animal/hostile/bosses/evilpope/Destroy()
 	QDEL_NULL(magic_missile)
 	QDEL_NULL(blink)
 	return ..()
 
-/mob/living/simple_animal/hostile/bosses/spacepope/handle_automated_action()
+/mob/living/simple_animal/hostile/bosses/evilpope/handle_automated_action()
 	. = ..()
 		if(magic_missile.is_available())
 			magic_missile.pre_activate(src, target)
