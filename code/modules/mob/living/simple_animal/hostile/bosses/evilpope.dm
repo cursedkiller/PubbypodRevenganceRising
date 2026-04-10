@@ -54,11 +54,14 @@
 
 /mob/living/simple_animal/hostile/bosses/evilpope/handle_automated_action()
 	. = ..()
+	if(target && next_cast < world.time)
+
 		if(magic_missile.is_available())
-			next_cast = world.time + 2 SECONDS
+			magic_missile.pre_activate(src, target)
+			next_cast = world.time + 1 SECONDS
 			return
 
 		if(blink.is_available()) // Spam Blink when you can
 			blink.pre_activate(src, src)
-			next_cast = world.time + 2 SECONDS
+			next_cast = world.time + 1 SECONDS
 			return
