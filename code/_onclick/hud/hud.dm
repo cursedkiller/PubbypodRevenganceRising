@@ -36,6 +36,11 @@ GLOBAL_LIST_INIT(available_ui_styles, list(
 
 	var/atom/movable/screen/combo/combo_display
 
+	// Hand of God deity displays
+	var/atom/movable/screen/deity_health_display
+	var/atom/movable/screen/deity_power_display
+	var/atom/movable/screen/deity_follower_display
+
 	var/atom/movable/screen/action_intent
 	var/atom/movable/screen/zone_select
 	var/atom/movable/screen/pull_icon
@@ -133,6 +138,11 @@ GLOBAL_LIST_INIT(available_ui_styles, list(
 	alien_plasma_display = null
 	alien_queen_finder = null
 	combo_display = null
+
+	// Hand of God deity displays
+	deity_health_display = null
+	deity_power_display = null
+	deity_follower_display = null
 
 	QDEL_LIST_ASSOC_VAL(plane_masters)
 	QDEL_LIST_ASSOC_VAL(plane_master_controllers)
@@ -427,6 +437,39 @@ GLOBAL_LIST_INIT(available_ui_styles, list(
 			action.show_to(mymob)
 			button = action.viewers[src]
 		position_action(button, button.location)
+
+/// Hand of God deity HUD setup
+/datum/hud/proc/hoggod_hud(ui_style = 'icons/hud/style/screen_midnight.dmi')
+	deity_health_display = new /atom/movable/screen()
+	deity_health_display.name = "Nexus Health"
+	deity_health_display.icon = ui_style
+	deity_health_display.icon_state = "deity_nexus"
+	deity_health_display.screen_loc = ui_deityhealth
+	deity_health_display.layer = HUD_LAYER
+	deity_health_display.plane = HUD_PLANE
+
+	deity_power_display = new /atom/movable/screen()
+	deity_power_display.name = "Faith"
+	deity_power_display.icon = ui_style
+	deity_power_display.icon_state = "deity_power"
+	deity_power_display.screen_loc = ui_deitypower
+	deity_power_display.layer = HUD_LAYER
+	deity_power_display.plane = HUD_PLANE
+
+	deity_follower_display = new /atom/movable/screen()
+	deity_follower_display.name = "Followers"
+	deity_follower_display.icon = ui_style
+	deity_follower_display.icon_state = "deity_followers"
+	deity_follower_display.screen_loc = ui_deityfollowers
+	deity_follower_display.layer = HUD_LAYER
+	deity_follower_display.plane = HUD_PLANE
+
+	infodisplay += deity_health_display
+	infodisplay += deity_power_display
+	infodisplay += deity_follower_display
+
+	if(mymob.client)
+		mymob.client.screen |= list(deity_health_display, deity_power_display, deity_follower_display)
 
 /datum/action_group
 	/// The hud we're owned by
