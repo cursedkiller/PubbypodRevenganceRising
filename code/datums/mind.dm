@@ -107,6 +107,85 @@
 	martial_art = default_martial_art
 	setup_soul_glimmer()
 
+/// Remove all Hand of God roles
+/datum/mind/proc/remove_hog_follower_prophet()
+	var/datum/game_mode/hand_of_god/mode = SSticker.mode
+	if(!istype(mode))
+		return
+	mode.red_deity_followers -= src
+	mode.red_deity_prophets -= src
+	mode.blue_deity_followers -= src
+	mode.blue_deity_prophets -= src
+	mode.update_hog_icons_removed(src, "red")
+	mode.update_hog_icons_removed(src, "blue")
+
+/// Make this mind a Hand of God follower
+/datum/mind/proc/make_Handofgod_follower(colour)
+	var/datum/game_mode/hand_of_god/mode = SSticker.mode
+	if(!istype(mode))
+		return FALSE
+	switch(colour)
+		if("red")
+			mode.blue_deity_followers -= src
+			mode.blue_deity_prophets -= src
+			mode.red_deity_prophets -= src
+			mode.red_deity_followers |= src
+			if(current)
+				current.faction |= FACTION_RED_GOD
+			special_role = "Hand of God: Red Follower"
+		if("blue")
+			mode.red_deity_followers -= src
+			mode.red_deity_prophets -= src
+			mode.blue_deity_prophets -= src
+			mode.blue_deity_followers |= src
+			if(current)
+				current.faction |= FACTION_BLUE_GOD
+			special_role = "Hand of God: Blue Follower"
+		else
+			return FALSE
+	mode.update_hog_icons_added(src, colour)
+	return TRUE
+
+/// Make this mind a Hand of God prophet
+/datum/mind/proc/make_Handofgod_prophet(colour)
+	var/datum/game_mode/hand_of_god/mode = SSticker.mode
+	if(!istype(mode))
+		return FALSE
+	switch(colour)
+		if("red")
+			mode.blue_deity_followers -= src
+			mode.blue_deity_prophets -= src
+			mode.red_deity_followers -= src
+			mode.red_deity_prophets |= src
+			if(current)
+				current.faction |= FACTION_RED_GOD
+			special_role = "Hand of God: Red Prophet"
+		if("blue")
+			mode.red_deity_followers -= src
+			mode.red_deity_prophets -= src
+			mode.blue_deity_followers -= src
+			mode.blue_deity_prophets |= src
+			if(current)
+				current.faction |= FACTION_BLUE_GOD
+			special_role = "Hand of God: Blue Prophet"
+		else
+			return FALSE
+	mode.update_hog_icons_added(src, colour)
+	return TRUE
+
+/// Make this mind a deity
+/datum/mind/proc/make_Handofgod_god(colour)
+	if(!current)
+		return FALSE
+	current.become_god(colour)
+	var/datum/game_mode/hand_of_god/mode = SSticker.mode
+	if(istype(mode))
+		mode.add_god(src, colour)
+		mode.forge_deity_objectives(src)
+		mode.remove_hog_follower(src, FALSE)
+		mode.update_hog_icons_added(src, colour)
+	return TRUE
+
 /datum/mind/Destroy()
 	SSticker.minds -= src
 	QDEL_LIST(antag_datums)
