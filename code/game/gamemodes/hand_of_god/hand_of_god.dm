@@ -1,4 +1,14 @@
 /// Hand of God Gamemode
+/// Two rival deities compete for control of the station through their cult followers
+
+// These lists are added to the base /datum/game_mode type
+/datum/game_mode
+	var/list/datum/mind/red_deities = list()
+	var/list/datum/mind/red_deity_prophets = list()
+	var/list/datum/mind/red_deity_followers = list()
+	var/list/datum/mind/blue_deities = list()
+	var/list/datum/mind/blue_deity_prophets = list()
+	var/list/datum/mind/blue_deity_followers = list()
 
 /datum/game_mode/hand_of_god
 	name = "hand of god"
@@ -17,11 +27,6 @@
 	var/list/datum/mind/red_followers = list()
 	var/list/datum/mind/blue_followers = list()
 	var/list/datum/mind/unassigned = list()
-
-	if(CONFIG_GET(flag/protect_roles_from_antagonist))
-		restricted_jobs += GLOB.protected_jobs
-	if(CONFIG_GET(flag/protect_assistant_from_antagonist))
-		restricted_jobs += "Assistant"
 
 	for(var/datum/mind/player in antag_candidates)
 		if(!(player.assigned_role in restricted_jobs))
@@ -44,18 +49,22 @@
 	return TRUE
 
 /datum/game_mode/hand_of_god/post_setup()
-	var/list/datum/mind/hog_god_candidates = list()
-	for(var/datum/mind/candidate in antag_candidates)
-		if(candidate.current?.client?.prefs?.be_special & (1 << ROLE_HOG_GOD))
-			hog_god_candidates += candidate
+	var/list/datum/mind/red_god_pool = list()
+	var/list/datum/mind/blue_god_pool = list()
 
-	var/list/datum/mind/red_god_pool = hog_god_candidates & red_deity_followers
+	// Find followers with god preference enabled
+	for(var/datum/mind/candidate in red_deity_followers)
+		if(candidate.current?.client?.prefs && (candidate.current.client.prefs.role_preferences_global["[ROLE_HOG_GOD]"]))
+			red_god_pool += candidate
+	for(var/datum/mind/candidate in blue_deity_followers)
+		if(candidate.current?.client?.prefs && (candidate.current.client.prefs.role_preferences_global["[ROLE_HOG_GOD]"]))
+			blue_god_pool += candidate
+
 	if(!length(red_god_pool))
 		red_god_pool = red_deity_followers
 	if(length(red_god_pool))
 		pick(red_god_pool).make_Handofgod_god("red")
 
-	var/list/datum/mind/blue_god_pool = hog_god_candidates & blue_deity_followers
 	if(!length(blue_god_pool))
 		blue_god_pool = blue_deity_followers
 	if(length(blue_god_pool))
@@ -101,6 +110,7 @@
 			red_deities += god_mind
 		if("blue")
 			blue_deities += god_mind
+	god_mind.special_role = "Hand of God: [capitalize(colour)] God"
 
 /datum/game_mode/proc/update_hog_icons_added(datum/mind/hog_mind, side)
 	if(!hog_mind.current)
@@ -137,6 +147,7 @@
 	O.owner = deity
 	O.find_target()
 	deity.objectives += O
+	log_game("[key_name(deity)] has been given objective: [O.explanation_text]")
 
 /datum/game_mode/proc/greet_hog_follower(datum/mind/follower_mind, colour)
 	if(!follower_mind.current)
@@ -148,15 +159,6 @@
 	..()
 	return TRUE
 
-// Global lists for tracking gamemode data
-/datum/game_mode
-	var/list/datum/mind/red_deities = list()
-	var/list/datum/mind/red_deity_prophets = list()
-	var/list/datum/mind/red_deity_followers = list()
-	var/list/datum/mind/blue_deities = list()
-	var/list/datum/mind/blue_deity_prophets = list()
-	var/list/datum/mind/blue_deity_followers = list()
-
 // Helper procs
 /proc/is_handofgod_god(mob/M)
 	return istype(M, /mob/camera/god)
@@ -164,7 +166,7 @@
 /proc/is_handofgod_redcultist(mob/M)
 	if(!ishuman(M) || !M.mind)
 		return FALSE
-	var/datum/game_mode/hand_of_god/mode = SSticker.mode
+	var/datum/game_mode/mode = SSticker.mode
 	if(!istype(mode))
 		return FALSE
 	return (M.mind in mode.red_deity_followers) || (M.mind in mode.red_deity_prophets)
@@ -172,7 +174,7 @@
 /proc/is_handofgod_bluecultist(mob/M)
 	if(!ishuman(M) || !M.mind)
 		return FALSE
-	var/datum/game_mode/hand_of_god/mode = SSticker.mode
+	var/datum/game_mode/mode = SSticker.mode
 	if(!istype(mode))
 		return FALSE
 	return (M.mind in mode.blue_deity_followers) || (M.mind in mode.blue_deity_prophets)
@@ -183,7 +185,7 @@
 /proc/is_handofgod_prophet(mob/M)
 	if(!ishuman(M) || !M.mind)
 		return FALSE
-	var/datum/game_mode/hand_of_god/mode = SSticker.mode
+	var/datum/game_mode/mode = SSticker.mode
 	if(!istype(mode))
 		return FALSE
 	return (M.mind in mode.red_deity_prophets) || (M.mind in mode.blue_deity_prophets)
