@@ -23,18 +23,18 @@
 /mob/camera/god/Initialize(mapload)
 	. = ..()
 	update_icons()
-	var/datum/game_mode/hand_of_god/mode = SSticker.mode
-	if(istype(mode))
+	var/datum/game_mode/mode = SSticker.mode
+	if(istype(mode, /datum/game_mode/hand_of_god))
 		addtimer(CALLBACK(src, PROC_REF(force_place_nexus)), 15 MINUTES)
 
 /mob/camera/god/Destroy()
 	if(ghostimage)
-		ghost_darkness_images -= ghostimage
+		GLOB.ghost_darkness_images -= ghostimage
 		updateallghostimages()
 	return ..()
 
 /mob/camera/god/proc/get_my_followers()
-	var/datum/game_mode/hand_of_god/mode = SSticker.mode
+	var/datum/game_mode/mode = SSticker.mode
 	if(!istype(mode))
 		return list()
 	switch(side)
@@ -93,12 +93,11 @@
 /mob/camera/god/say(message, bubble_type, list/spans = list(), sanitize = TRUE, datum/language/language = null, ignore_spam = FALSE, forced = null)
 	if(!message)
 		return
-	if(client?.prefs)
-		if(client.prefs.muted & MUTE_IC)
-			to_chat(src, "<span class='warning'>You cannot send IC messages (muted).</span>")
+	if(client)
+		if(stat)
 			return
-	if(stat)
-		return
+		if(client.handle_spam_prevention(message, MUTE_IC))
+			return
 	god_speak(message)
 
 /mob/camera/god/proc/god_speak(msg)
@@ -111,14 +110,14 @@
 		if(M.mind in get_my_followers())
 			to_chat(M, rendered)
 		else if(isobserver(M))
-			to_chat(M, "<a href='?src=[REF(M)];follow=[REF(src)]'>(F)</a> [rendered]")
+			to_chat(M, "[rendered]")
 
 /mob/camera/god/update_icons()
 	icon_state = "[initial(icon_state)]-[side]"
 	if(ghostimage)
-		ghost_darkness_images -= ghostimage
+		GLOB.ghost_darkness_images -= ghostimage
 	ghostimage = image(icon, src, icon_state)
-	ghost_darkness_images |= ghostimage
+	GLOB.ghost_darkness_images |= ghostimage
 	updateallghostimages()
 
 /mob/camera/god/Login()
