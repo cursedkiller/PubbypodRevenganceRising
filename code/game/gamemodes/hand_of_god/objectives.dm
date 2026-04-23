@@ -2,7 +2,7 @@
 
 /datum/objective/deicide
 	name = "deicide"
-	explanation_text = "Kill the opposing deity."
+	explanation_text = "Destroy the opposing deity."
 
 /datum/objective/deicide/check_completion()
 	if(!target)
@@ -12,7 +12,7 @@
 	return target.current.stat == DEAD
 
 /datum/objective/deicide/find_target()
-	var/datum/game_mode/hand_of_god/mode = SSticker.mode
+	var/datum/game_mode/mode = SSticker.mode
 	if(!istype(mode))
 		return
 	var/list/candidates = list()
@@ -64,7 +64,7 @@
 	var/follower_max = 4
 
 /datum/objective/follower_block/check_completion()
-	var/datum/game_mode/hand_of_god/mode = SSticker.mode
+	var/datum/game_mode/mode = SSticker.mode
 	if(!istype(mode))
 		return FALSE
 	var/enemy_count = 0
@@ -76,7 +76,7 @@
 
 /datum/objective/escape_followers
 	name = "follower escape"
-	explanation_text = "Ensure followers escape."
+	explanation_text = "Ensure followers escape on the shuttle."
 	var/follower_escape_target = 5
 
 /datum/objective/escape_followers/check_completion()
@@ -87,4 +87,4 @@
 	update_explanation_text()
 
 /datum/objective/escape_followers/update_explanation_text()
-	explanation_text = "Ensure at least [follower_escape_target] followers escape."
+	explanation_text = "Ensure at least [follower_escape_target] followers escape on the shuttle or pod."
