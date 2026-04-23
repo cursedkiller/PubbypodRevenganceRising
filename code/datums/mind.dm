@@ -754,6 +754,51 @@
 	mind.set_assigned_role(ROLE_PAI)
 	mind.special_role = ""
 
+// HAND OF GOD PROCS
+
+/// Remove all Hand of God antag datums from this mind
+/datum/mind/proc/remove_hog_follower_prophet()
+	remove_antag_datum(/datum/antagonist/hog_cultist)
+	remove_antag_datum(/datum/antagonist/hog_cultist/prophet)
+
+/// Make this mind into a Hand of God follower
+/datum/mind/proc/make_Handofgod_follower(team_colour = HOG_TEAM_RED)
+	if(!current)
+		return FALSE
+
+	// Remove any existing HoG roles first
+	remove_hog_follower_prophet()
+
+	var/datum/antagonist/hog_cultist/cultist = add_antag_datum(/datum/antagonist/hog_cultist)
+	if(!cultist)
+		return FALSE
+
+	cultist.set_team(team_colour)
+	to_chat(current, span_danger("<FONT size=3>You are now a follower of the [team_colour] deity!</FONT>"))
+	return TRUE
+
+/// Make this mind into a Hand of God prophet
+/datum/mind/proc/make_Handofgod_prophet(team_colour = HOG_TEAM_RED)
+	if(!current)
+		return FALSE
+
+	remove_hog_follower_prophet()
+
+	var/datum/antagonist/hog_cultist/prophet/prophet = add_antag_datum(/datum/antagonist/hog_cultist/prophet)
+	if(!prophet)
+		return FALSE
+
+	prophet.set_team(team_colour)
+	to_chat(current, span_danger("<B>You are the prophet of the [team_colour] deity!</B>"))
+	return TRUE
+
+/// Make this mind into a full deity
+/datum/mind/proc/make_Handofgod_god(team_colour = HOG_TEAM_RED)
+	if(!current)
+		return FALSE
+	current.become_god(team_colour)
+	return TRUE
+
 // Quirk Procs //
 
 /datum/mind/proc/add_quirk(quirktype, spawn_effects) //separate proc due to the way these ones are handled
