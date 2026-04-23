@@ -1,0 +1,97 @@
+/// Uncomment this to enable testing of Hand of God features
+//#define HOG_TESTING
+
+#ifdef HOG_TESTING
+#ifdef CIBUILDING
+#error HOG_TESTING is enabled, disable this!
+#else
+#warn HOG_TESTING is enabled, you REALLY do not want this enabled outside of local testing!
+#endif
+#endif
+
+/**
+ * Team defines
+ */
+#define HOG_TEAM_RED "red"
+#define HOG_TEAM_BLUE "blue"
+
+/**
+ * Faith-level defines
+ */
+/// Starting faith for a new deity
+#define HOG_FAITH_STARTING 100
+/// Maximum faith a deity can hold
+#define HOG_FAITH_MAX 100
+/// Faith cost to place a nexus
+#define HOG_FAITH_COST_NEXUS 0
+/// Faith cost to place a basic trap
+#define HOG_FAITH_COST_TRAP 20
+/// Faith cost to begin a structure
+#define HOG_FAITH_COST_STRUCTURE 75
+
+/**
+ * Nexus defines
+ */
+/// Nexus maximum integrity
+#define HOG_NEXUS_MAX_INTEGRITY 500
+/// Time before a nexus is force-placed (in seconds)
+#define HOG_NEXUS_FORCE_TIME (15 MINUTES)
+
+/**
+ * Follower defines
+ */
+/// How many followers needed before a god can appoint a prophet
+#define HOG_FOLLOWERS_FOR_PROPHET 3
+
+/**
+ * Antag HUD defines
+ */
+#define ANTAG_HUD_HOG_BLUE 11
+#define ANTAG_HUD_HOG_RED 12
+
+/**
+ * HUD screen location defines
+ */
+#define ui_deityhealth "EAST-1:28,CENTER-2:13"
+#define ui_deitypower "EAST-1:28,CENTER-1:15"
+#define ui_deityfollowers "EAST-1:28,CENTER:17"
+
+/**
+ * Faction defines
+ */
+#define FACTION_RED_GOD "red god"
+#define FACTION_BLUE_GOD "blue god"
+
+/**
+ * Traits
+ */
+/// Given to cultists to mark them as followers
+#define TRAIT_HOG_CULTIST "trait_hog_cultist"
+/// Given to prophets
+#define TRAIT_HOG_PROPHET "trait_hog_prophet"
+
+/**
+ * Trait sources
+ */
+#define TRAIT_HOG "trait_handofgod"
+
+/**
+ * Signals
+ */
+/// Called when a new follower joins the cult: (datum/mind/new_follower, team_colour)
+#define COMSIG_HOG_FOLLOWER_GAINED "comsig_hog_follower_gained"
+/// Called when a follower leaves the cult: (datum/mind/removed_follower, team_colour)
+#define COMSIG_HOG_FOLLOWER_LOST "comsig_hog_follower_lost"
+/// Called when a deity's nexus is destroyed: (mob/camera/god/deity)
+#define COMSIG_HOG_NEXUS_DESTROYED "comsig_hog_nexus_destroyed"
+/// Called when a deity dies
+#define COMSIG_HOG_DEITY_DEATH "comsig_hog_deity_death"
+
+/**
+ * Macros
+ */
+#define IS_HOG_CULTIST(mob) (mob?.mind?.has_antag_datum(/datum/antagonist/hog_cultist))
+#define IS_HOG_PROPHET(mob) (mob?.mind?.has_antag_datum(/datum/antagonist/hog_cultist/prophet))
+#define IS_HOG_GOD(mob) (istype(mob, /mob/camera/god))
+#define IS_HOG_RED(mob) (mob?.mind?.has_antag_datum(/datum/antagonist/hog_cultist) && mob.mind.has_antag_datum(/datum/antagonist/hog_cultist).cult_team?.team_colour == HOG_TEAM_RED)
+#define IS_HOG_BLUE(mob) (mob?.mind?.has_antag_datum(/datum/antagonist/hog_cultist) && mob.mind.has_antag_datum(/datum/antagonist/hog_cultist).cult_team?.team_colour == HOG_TEAM_BLUE)
