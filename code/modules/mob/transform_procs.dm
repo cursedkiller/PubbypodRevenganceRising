@@ -707,3 +707,27 @@
 	qdel(src)
 
 #undef TRANSFORMATION_DURATION
+
+/// Transform a mob into a Hand of God deity
+/mob/proc/become_god(team_colour = HOG_TEAM_RED)
+	var/mob/camera/god/G = new(loc)
+	G.name = real_name
+	G.real_name = real_name
+	G.team_colour = team_colour
+
+	if(mind)
+		mind.transfer_to(G)
+	else
+		G.key = key
+
+	G.job = "Deity"
+	G.update_icons()
+	G.update_all_huds()
+
+	// Add the antag datum to the new god mob's mind
+	G.mind.add_antag_datum(/datum/antagonist/hog_god)
+
+	log_game("[key_name(G)] has become a [team_colour] Hand of God deity.")
+
+	qdel(src)
+	return G
