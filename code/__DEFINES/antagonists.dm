@@ -65,6 +65,8 @@
 #define FACTION_ALIEN "Xenomorph"
 #define FACTION_WIZARD "Wizard"
 #define FACTION_VAMPIRE "Vampire"
+#define FACTION_HOG_RED "red god"
+#define FACTION_HOG_BLUE "blue god"
 
 // Heretic path defines.
 #define HERETIC_PATH_START "Heretic Start Path"
@@ -159,6 +161,10 @@ GLOBAL_LIST_INIT(ai_employers, list(
 #define IS_VAMPIRE(mob) (mob?.mind?.has_antag_datum(/datum/antagonist/vampire))
 /// Checks if the given mob is a vassal
 #define IS_VASSAL(mob) (mob?.mind?.has_antag_datum(/datum/antagonist/vassal))
+/// Checks if the given mob is a hand of god cultist
+#define IS_HOG_CULTIST(mob) (mob?.mind?.has_antag_datum(/datum/antagonist/hog_cultist))
+/// Checks if the given mob is a hand of god prophet
+#define IS_HOG_PROPHET(mob) (mob?.mind?.has_antag_datum(/datum/antagonist/hog_cultist/prophet))
 /// Checks if the given mob is a revolutionary
 #define IS_REVOLUTIONARY(mob) (mob?.mind?.has_antag_datum(/datum/antagonist/rev))
 #define IS_HEAD_REVOLUTIONARY(mob) (mob?.mind?.has_antag_datum(/datum/antagonist/rev/head))
