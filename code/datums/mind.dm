@@ -757,7 +757,7 @@
 // HAND OF GOD PROCS
 
 /datum/mind/proc/remove_hog_follower_prophet()
-	var/datum/game_mode/hand_of_god/mode = SSticker.mode
+	var/datum/game_mode/mode = SSticker.mode
 	if(!istype(mode))
 		return
 	mode.red_deity_followers -= src
@@ -768,7 +768,7 @@
 	mode.update_hog_icons_removed(src, "blue")
 
 /datum/mind/proc/make_Handofgod_follower(colour)
-	var/datum/game_mode/hand_of_god/mode = SSticker.mode
+	var/datum/game_mode/mode = SSticker.mode
 	if(!istype(mode))
 		return FALSE
 	switch(colour)
@@ -794,7 +794,7 @@
 	return TRUE
 
 /datum/mind/proc/make_Handofgod_prophet(colour)
-	var/datum/game_mode/hand_of_god/mode = SSticker.mode
+	var/datum/game_mode/mode = SSticker.mode
 	if(!istype(mode))
 		return FALSE
 	switch(colour)
