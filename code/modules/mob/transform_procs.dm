@@ -718,7 +718,7 @@
 	G.job = "Deity"
 	G.update_icons()
 
-	var/datum/game_mode/hand_of_god/mode = SSticker.mode
+	var/datum/game_mode/mode = SSticker.mode
 	if(istype(mode))
 		mode.add_god(mind, side_colour)
 		mode.forge_deity_objectives(mind)
