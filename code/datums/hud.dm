@@ -42,6 +42,8 @@ GLOBAL_LIST_INIT(huds, list(
 	ANTAG_HUD_HEARTBREAKER = new/datum/atom_hud/antag/hidden(),
 	ANTAG_HUD_PRISONER = new/datum/atom_hud/antag/hidden(),
 	ANTAG_HUD_VAMPIRE = new/datum/atom_hud/antag(),
+	ANTAG_HUD_HOG_RED = new/datum/atom_hud/antag(),
+	ANTAG_HUD_HOG_BLUE = new/datum/atom_hud/antag(),
 	))
 
 /datum/atom_hud
@@ -167,3 +169,23 @@ GLOBAL_LIST_INIT(huds, list(
 
 /mob/dead/new_player/add_click_catcher()
 	return
+
+// HAND OF GOD HUD HELPERS
+
+/// Add a mob to the HoG antag HUD for their team
+/proc/add_hog_hud(mob/M, team_colour, rank = "follower")
+	var/hud_key = (team_colour == HOG_TEAM_RED) ? ANTAG_HUD_HOG_RED : ANTAG_HUD_HOG_BLUE
+	var/datum/atom_hud/antag/hud = GLOB.huds[hud_key]
+	if(!hud)
+		return
+	hud.join_hud(M)
+	set_antag_hud(M, "hog-[team_colour]-[rank]")
+
+/// Remove a mob from the HoG antag HUD
+/proc/remove_hog_hud(mob/M, team_colour)
+	var/hud_key = (team_colour == HOG_TEAM_RED) ? ANTAG_HUD_HOG_RED : ANTAG_HUD_HOG_BLUE
+	var/datum/atom_hud/antag/hud = GLOB.huds[hud_key]
+	if(!hud)
+		return
+	hud.leave_hud(M)
+	set_antag_hud(M, null)
