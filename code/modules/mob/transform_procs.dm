@@ -716,7 +716,14 @@
 	else
 		G.key = key
 	G.job = "Deity"
-	G.rename_self("deity")
 	G.update_icons()
+
+	var/datum/game_mode/hand_of_god/mode = SSticker.mode
+	if(istype(mode))
+		mode.add_god(mind, side_colour)
+		mode.forge_deity_objectives(mind)
+		mode.remove_hog_follower(mind, FALSE)
+		mode.update_hog_icons_added(mind, side_colour)
+
 	qdel(src)
 	return G
