@@ -91,7 +91,7 @@
 	pixel_x = -12;
 	pixel_y = 2
 	},
-/obj/structure/sign/warning/nosmoking{
+/obj/structure/sign/warning/no_smoking{
 	pixel_x = -32
 	},
 /obj/effect/turf_decal/bot,
@@ -121,7 +121,7 @@
 	},
 /obj/item/reagent_containers/syringe,
 /obj/effect/decal/cleanable/dirt,
-/obj/structure/cable/white,
+/obj/structure/cable/pink,
 /obj/effect/turf_decal/bot,
 /turf/open/floor/iron,
 /area/template_noop)
