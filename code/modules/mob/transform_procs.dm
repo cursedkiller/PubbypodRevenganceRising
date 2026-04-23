@@ -707,3 +707,16 @@
 	qdel(src)
 
 #undef TRANSFORMATION_DURATION
+
+/mob/proc/become_god(side_colour = "neutral")
+	var/mob/camera/god/G = new(loc)
+	G.side = side_colour
+	if(mind)
+		mind.transfer_to(G)
+	else
+		G.key = key
+	G.job = "Deity"
+	G.rename_self("deity")
+	G.update_icons()
+	qdel(src)
+	return G
