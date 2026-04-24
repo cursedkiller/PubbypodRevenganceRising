@@ -26,7 +26,7 @@
 
 /mob/camera/god/Destroy()
 	if(ghostimage)
-		GLOB.ghost_darkness_images -= ghostimage
+		ghost_darkness_images -= ghostimage
 		updateallghostimages()
 	if(god_nexus)
 		QDEL_NULL(god_nexus)
@@ -149,9 +149,9 @@
 /mob/camera/god/update_icons()
 	icon_state = "marker-[team_colour]"
 	if(ghostimage)
-		GLOB.ghost_darkness_images -= ghostimage
+		ghost_darkness_images -= ghostimage
 	ghostimage = image(icon, src, icon_state)
-	GLOB.ghost_darkness_images |= ghostimage
+	ghost_darkness_images |= ghostimage
 	updateallghostimages()
 
 /mob/camera/god/Login()
