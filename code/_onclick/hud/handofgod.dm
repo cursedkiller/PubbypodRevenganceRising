@@ -10,7 +10,7 @@
 	closeToolTip(usr)
 
 /atom/movable/screen/hog/PlaceNexus
-	icon_state = "nexus"
+	icon_state = "nexus-spawn"
 	name = "Place Nexus"
 	desc = "Anchor yourself to this realm."
 
