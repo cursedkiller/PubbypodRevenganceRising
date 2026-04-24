@@ -186,6 +186,20 @@
 	. = ..()
 	if(hud_used)
 		hud_used.hoggod_hud(src)
+
+	// Grant deity powers
+	var/datum/action/cooldown/hog/place_nexus/nexus_action = new(src)
+	nexus_action.Grant(src)
+
+	var/datum/action/cooldown/hog/god_speak/speak_action = new(src)
+	speak_action.Grant(src)
+
+	var/datum/action/cooldown/hog/build_structure/build_action = new(src)
+	build_action.Grant(src)
+
+	var/datum/action/cooldown/hog/place_trap/trap_action = new(src)
+	trap_action.Grant(src)
+
 	to_chat(src, span_notice("You are a deity!"))
 	to_chat(src, "You are worshipped by a cult. Place your <b>Nexus</b> to anchor yourself to this realm, or one will be placed for you in [HOG_NEXUS_FORCE_TIME/600] minutes.")
 
