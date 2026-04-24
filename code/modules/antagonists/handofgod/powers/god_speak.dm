@@ -1,4 +1,4 @@
-/datum/action/cooldown/hog/god_speak
+/datum/action/cooldown/hog_god_speak
 	name = "Divine Telepathy"
 	desc = "Speak to all of your followers at once."
 	button_icon = 'icons/obj/hand_of_god_structures.dmi'
@@ -6,7 +6,7 @@
 	background_icon_state = "bg_demon"
 	cooldown_time = 5 SECONDS
 
-/datum/action/cooldown/hog/god_speak/IsAvailable(feedback = FALSE)
+/datum/action/cooldown/hog_god_speak/IsAvailable(feedback = FALSE)
 	. = ..()
 	if(!.)
 		return FALSE
@@ -17,7 +17,7 @@
 		return FALSE
 	return TRUE
 
-/datum/action/cooldown/hog/god_speak/Activate(atom/target)
+/datum/action/cooldown/hog_god_speak/Activate(atom/target)
 	var/mob/camera/god/deity = owner
 	var/msg = tgui_input_text(deity, "What message do you wish to send to your followers?", "Divine Telepathy", "", MAX_MESSAGE_LEN, multiline = TRUE)
 	if(!msg)
