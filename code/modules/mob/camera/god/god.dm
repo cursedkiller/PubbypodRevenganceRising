@@ -16,7 +16,6 @@
 	var/nexus_required = FALSE
 	var/list/obj/structure/divine/structures = list()
 	var/prophets_sacrificed_in_name = 0
-	var/image/ghostimage = null
 	var/alive_followers = 0
 
 /mob/camera/god/Initialize(mapload)
@@ -25,9 +24,6 @@
 	addtimer(CALLBACK(src, PROC_REF(force_place_nexus)), HOG_NEXUS_FORCE_TIME)
 
 /mob/camera/god/Destroy()
-	if(ghostimage)
-		GLOB.ghost_darkness_images -= ghostimage
-		updateallghostimages()
 	if(god_nexus)
 		QDEL_NULL(god_nexus)
 	structures.Cut()
@@ -67,21 +63,61 @@
 
 /mob/camera/god/proc/place_nexus()
 	if(god_nexus)
-		return FALSE
+		to_chat(src, span_warning("You already have a nexus!"))
+		return
 	var/turf/T = get_turf(src)
 	if(!T)
-		return FALSE
+		return
 	var/obj/structure/divine/nexus/N = new(T)
 	N.assign_deity(src)
 	god_nexus = N
 	nexus_required = TRUE
 	update_nexus_health_hud()
-	return TRUE
+	to_chat(src, span_notice("You have placed your nexus!"))
+
+/mob/camera/god/proc/god_speak_input()
+	if(!alive_followers)
+		to_chat(src, span_warning("You have no followers to speak to!"))
+		return
+	var/msg = tgui_input_text(src, "Message to followers:", "Divine Telepathy", "", MAX_MESSAGE_LEN, multiline = TRUE)
+	if(!msg)
+		return
+	god_speak(msg)
+
+/mob/camera/god/proc/build_structure()
+	if(!god_nexus)
+		to_chat(src, span_warning("You must place your nexus first!"))
+		return
+	if(!can_afford(HOG_FAITH_COST_STRUCTURE))
+		return
+	var/list/choices = list("Defense Pylon" = /obj/structure/divine/defensepylon)
+	var/chosen_name = tgui_input_list(src, "Choose a structure:", "Build Structure", choices)
+	if(!chosen_name)
+		return
+	if(!spend_faith(HOG_FAITH_COST_STRUCTURE))
+		return
+	var/obj/structure/divine/construction_holder/CH = new(get_turf(src))
+	CH.assign_deity(src)
+	CH.setup_construction(choices[chosen_name])
+	CH.visible_message(span_notice("A transparent, unfinished [chosen_name] appears!"))
+
+/mob/camera/god/proc/place_trap()
+	if(!god_nexus)
+		to_chat(src, span_warning("You must place your nexus first!"))
+		return
+	if(!can_afford(HOG_FAITH_COST_TRAP))
+		return
+	if(!spend_faith(HOG_FAITH_COST_TRAP))
+		return
+	new /obj/structure/divine/defensepylon(get_turf(src))
+	to_chat(src, span_notice("You manifest a defense pylon."))
 
 /mob/camera/god/proc/update_nexus_health_hud()
 	if(!hud_used?.deity_health_display || !god_nexus)
 		return
-	var/health_percent = round((god_nexus.obj_integrity / god_nexus.max_integrity) * 100)
+	var/health_percent = 100
+	if(god_nexus.max_integrity > 0)
+		health_percent = round((god_nexus.get_integrity() / god_nexus.max_integrity) * 100)
 	hud_used.deity_health_display.maptext = MAPTEXT("<div align='center' valign='middle'><font color='lime'>[health_percent]%</font></div>")
 
 /mob/camera/god/proc/update_faith_hud()
@@ -111,7 +147,6 @@
 /mob/camera/god/proc/check_death()
 	if(!alive_followers)
 		to_chat(src, span_userdanger("You no longer have any followers. Your existence fades away..."))
-		SEND_SIGNAL(src, COMSIG_HOG_DEITY_DEATH)
 		qdel(src)
 
 /mob/camera/god/proc/add_faith(amount)
@@ -148,31 +183,13 @@
 
 /mob/camera/god/update_icons()
 	icon_state = "marker-[team_colour]"
-	if(ghostimage)
-		GLOB.ghost_darkness_images -= ghostimage
-	ghostimage = image(icon, src, icon_state)
-	GLOB.ghost_darkness_images |= ghostimage
-	updateallghostimages()
 
 /mob/camera/god/Login()
 	. = ..()
 	if(hud_used)
 		hud_used.hoggod_hud(src)
-
-	var/datum/action/cooldown/hog_place_nexus/nexus_action = new(src)
-	nexus_action.Grant(src)
-
-	var/datum/action/cooldown/hog_god_speak/speak_action = new(src)
-	speak_action.Grant(src)
-
-	var/datum/action/cooldown/hog_build_structure/build_action = new(src)
-	build_action.Grant(src)
-
-	var/datum/action/cooldown/hog_place_trap/trap_action = new(src)
-	trap_action.Grant(src)
-
 	to_chat(src, span_notice("You are a deity!"))
-	to_chat(src, "You are worshipped by a cult. Place your <b>Nexus</b> to anchor yourself to this realm, or one will be placed for you in [HOG_NEXUS_FORCE_TIME/600] minutes.")
+	to_chat(src, "You are worshipped by a cult. Use the buttons on your HUD to interact with the world.")
 
 /mob/camera/god/Move(new_loc, direct)
 	loc = new_loc
