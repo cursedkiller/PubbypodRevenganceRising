@@ -35,7 +35,8 @@
 	if(QDELETED(src))
 		return
 	refresh_followers()
-	check_death()
+	if(!god_nexus && !alive_followers)
+		check_death()
 	addtimer(CALLBACK(src, PROC_REF(start_death_check)), 30 SECONDS)
 
 /mob/camera/god/proc/get_my_followers()
@@ -79,7 +80,7 @@
 
 /mob/camera/god/proc/place_nexus()
 	if(god_nexus)
-		to_chat(src, span_warning("You already have a nexus!"))
+		to_chat(src, span_warning("You already have a nexus! You cannot place another."))
 		return
 	var/turf/T = get_turf(src)
 	if(!T)
@@ -89,7 +90,7 @@
 	god_nexus = N
 	nexus_required = TRUE
 	update_nexus_health_hud()
-	to_chat(src, span_notice("You have placed your nexus!"))
+	to_chat(src, span_notice("You have placed your nexus! It will slowly heal over time."))
 
 /mob/camera/god/proc/god_speak_input()
 	if(!alive_followers)
@@ -341,8 +342,8 @@
 	update_follower_hud()
 
 /mob/camera/god/proc/check_death()
-	if(!god_nexus || !alive_followers)
-		to_chat(src, span_userdanger("Your connection to this realm has been severed. Your existence fades away..."))
+	if(!god_nexus && !alive_followers)
+		to_chat(src, span_userdanger("Your nexus is destroyed and you have no followers left. Your existence fades away..."))
 		qdel(src)
 
 /mob/camera/god/proc/add_faith(amount)
