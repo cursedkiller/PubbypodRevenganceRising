@@ -51,8 +51,7 @@
 	if(QDELETED(src))
 		return
 	refresh_followers()
-	if(!god_nexus && !alive_followers)
-		check_death()
+	check_death()
 	addtimer(CALLBACK(src, PROC_REF(start_death_check)), 30 SECONDS)
 
 /mob/camera/god/proc/get_my_followers()
@@ -344,6 +343,8 @@
 	update_follower_hud()
 
 /mob/camera/god/proc/check_death()
+	if(!nexus_required)
+		return
 	if(!god_nexus && !alive_followers)
 		to_chat(src, span_userdanger("Your nexus is destroyed and you have no followers left. Your existence fades away..."))
 		qdel(src)
