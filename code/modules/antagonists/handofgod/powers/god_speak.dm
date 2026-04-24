@@ -1,20 +1,10 @@
-/// Hand of God - God Speak Power
-/// Allows the deity to telepathically communicate with all followers at once
-
 /datum/action/cooldown/hog/god_speak
 	name = "Divine Telepathy"
-	desc = "Speak to all of your followers at once. Your voice will echo in their minds."
+	desc = "Speak to all of your followers at once."
 	button_icon = 'icons/obj/hand_of_god_structures.dmi'
 	button_icon_state = "God-Speak"
 	background_icon_state = "bg_demon"
-	overlay_icon_state = "bg_demon_border"
 	cooldown_time = 5 SECONDS
-
-/datum/action/cooldown/hog/god_speak/New(Target)
-	. = ..()
-	if(!istype(Target, /mob/camera/god))
-		qdel(src)
-		return
 
 /datum/action/cooldown/hog/god_speak/IsAvailable(feedback = FALSE)
 	. = ..()
