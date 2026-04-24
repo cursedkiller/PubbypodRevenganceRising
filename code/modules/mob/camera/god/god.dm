@@ -145,7 +145,7 @@
 	to_chat(target, span_userdanger("You are struck by divine wrath!"))
 	target.adjustFireLoss(30)
 	target.adjustBruteLoss(20)
-	target.electrocution_animation(15)
+	target.electrocute_animation(15)
 	playsound(target, 'sound/magic/lightningbolt.ogg', 50, 1)
 	to_chat(src, span_notice("You smite [target]!"))
 
@@ -169,7 +169,7 @@
 		return
 	var/obj/item/melee/cultblade/dagger/D = new(target.loc)
 	target.put_in_hands(D)
-	target.equip_to_slot_or_del(new /obj/item/clothing/suit/armor/cultarmor(target), ITEM_SLOT_OCLOTHING)
+	target.equip_to_slot_or_del(new /obj/item/clothing/suit/hooded/cultrobes(target), ITEM_SLOT_OCLOTHING)
 	to_chat(target, span_danger("Your deity grants you divine equipment!"))
 	to_chat(src, span_notice("You grant equipment to [target]."))
 
