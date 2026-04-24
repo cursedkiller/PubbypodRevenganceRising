@@ -91,7 +91,6 @@
 	if(!can_afford(HOG_FAITH_COST_STRUCTURE))
 		return
 	var/list/choices = list(
-		"Defense Pylon" = /obj/structure/divine/defensepylon,
 		"Power Pylon" = /obj/structure/divine/powerpylon,
 		"Translocator" = /obj/structure/divine/translocator,
 		"Forge" = /obj/structure/divine/forge,
@@ -121,8 +120,28 @@
 		return
 	if(!spend_faith(HOG_FAITH_COST_TRAP))
 		return
-	new /obj/structure/divine/defensepylon(get_turf(src))
-	to_chat(src, span_notice("You manifest a defense pylon."))
+	var/list/rune_choices = list(
+		"Shock Trap" = /obj/structure/trap/stun,
+		"Frost Trap" = /obj/structure/trap/damage,
+		"Fire Trap" = /obj/structure/trap/fire,
+		"Earth Trap" = /obj/structure/trap/damage,
+	)
+	var/chosen_name = tgui_input_list(src, "Choose a rune to manifest:", "Rune Manifest", rune_choices)
+	if(!chosen_name)
+		return
+	var/trap_type = rune_choices[chosen_name]
+	var/obj/structure/trap/T = new trap_type(get_turf(src))
+	T.icon = 'icons/obj/hand_of_god_structures.dmi'
+	switch(chosen_name)
+		if("Shock Trap")
+			T.icon_state = "trap-shock"
+		if("Frost Trap")
+			T.icon_state = "trap-frost"
+		if("Fire Trap")
+			T.icon_state = "trap-fire"
+		if("Earth Trap")
+			T.icon_state = "trap-earth"
+	to_chat(src, span_notice("You manifest a [chosen_name]."))
 
 /mob/camera/god/proc/smite_target()
 	if(!god_nexus)
