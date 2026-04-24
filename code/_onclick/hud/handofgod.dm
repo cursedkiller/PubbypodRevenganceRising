@@ -49,6 +49,36 @@
 		var/mob/camera/god/deity = usr
 		deity.place_trap()
 
+/atom/movable/screen/hog/Smite
+	icon_state = "Smite-Nerd"
+	name = "Smite"
+	desc = "Unleash divine wrath upon a non-believer."
+
+/atom/movable/screen/hog/Smite/Click()
+	if(istype(usr, /mob/camera/god))
+		var/mob/camera/god/deity = usr
+		deity.smite_target()
+
+/atom/movable/screen/hog/ConjureEquipment
+	icon_state = "Conkure Equipment"
+	name = "Conjure Equipment"
+	desc = "Grant weapons and armor to a chosen follower."
+
+/atom/movable/screen/hog/ConjureEquipment/Click()
+	if(istype(usr, /mob/camera/god))
+		var/mob/camera/god/deity = usr
+		deity.conjure_equipment()
+
+/atom/movable/screen/hog/ConjureCalamity
+	icon_state = "Conjure Calamity"
+	name = "Conjure Calamity"
+	desc = "Unleash a devastating calamity upon the station."
+
+/atom/movable/screen/hog/ConjureCalamity/Click()
+	if(istype(usr, /mob/camera/god))
+		var/mob/camera/god/deity = usr
+		deity.conjure_calamity()
+
 /datum/hud/proc/hoggod_hud(mob/camera/god/deity)
 	if(!deity)
 		return
@@ -76,12 +106,12 @@
 
 	var/atom/movable/screen/hog/using
 
-	using = new /atom/movable/screen/hog/PlaceNexus(null, src)
-	using.screen_loc = "WEST:6,NORTH:-3"
-	static_inventory += using
-
 	using = new /atom/movable/screen/hog/GodSpeak(null, src)
 	using.screen_loc = ui_inventory
+	static_inventory += using
+
+	using = new /atom/movable/screen/hog/PlaceNexus(null, src)
+	using.screen_loc = ui_zonesel
 	static_inventory += using
 
 	using = new /atom/movable/screen/hog/BuildStructure(null, src)
@@ -90,6 +120,18 @@
 
 	using = new /atom/movable/screen/hog/PlaceTrap(null, src)
 	using.screen_loc = ui_back
+	static_inventory += using
+
+	using = new /atom/movable/screen/hog/Smite(null, src)
+	using.screen_loc = ui_hand_position(1)
+	static_inventory += using
+
+	using = new /atom/movable/screen/hog/ConjureEquipment(null, src)
+	using.screen_loc = ui_storage1
+	static_inventory += using
+
+	using = new /atom/movable/screen/hog/ConjureCalamity(null, src)
+	using.screen_loc = ui_storage2
 	static_inventory += using
 
 	if(mymob.client)
