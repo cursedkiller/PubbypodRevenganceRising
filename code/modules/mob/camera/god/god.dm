@@ -112,6 +112,67 @@
 	new /obj/structure/divine/defensepylon(get_turf(src))
 	to_chat(src, span_notice("You manifest a defense pylon."))
 
+/mob/camera/god/proc/smite_target()
+	if(!god_nexus)
+		to_chat(src, span_warning("You must place your nexus first!"))
+		return
+	if(!can_afford(30))
+		return
+	var/list/targets = list()
+	for(var/mob/living/H in view(7, src))
+		if(!IS_HOG_CULTIST(H) && H.mind && H.stat != DEAD)
+			targets += H
+	if(!length(targets))
+		to_chat(src, span_warning("No valid targets in range!"))
+		return
+	var/mob/living/target = tgui_input_list(src, "Choose a target to smite:", "Smite", targets)
+	if(!target)
+		return
+	if(!spend_faith(30))
+		return
+	to_chat(target, span_userdanger("You are struck by divine wrath!"))
+	target.adjustFireLoss(30)
+	target.adjustBruteLoss(20)
+	target.electrocution_animation(15)
+	playsound(target, 'sound/magic/lightningbolt.ogg', 50, 1)
+	to_chat(src, span_notice("You smite [target]!"))
+
+/mob/camera/god/proc/conjure_equipment()
+	if(!god_nexus)
+		to_chat(src, span_warning("You must place your nexus first!"))
+		return
+	if(!can_afford(50))
+		return
+	var/list/followers = list()
+	for(var/datum/mind/M in get_my_followers())
+		if(M.current && M.current.stat != DEAD && ishuman(M.current))
+			followers += M.current
+	if(!length(followers))
+		to_chat(src, span_warning("You have no living followers!"))
+		return
+	var/mob/living/carbon/human/target = tgui_input_list(src, "Grant equipment to:", "Conjure Equipment", followers)
+	if(!target)
+		return
+	if(!spend_faith(50))
+		return
+	var/obj/item/melee/cultblade/dagger/D = new(target.loc)
+	target.put_in_hands(D)
+	target.equip_to_slot_or_del(new /obj/item/clothing/suit/armor/cultarmor(target), ITEM_SLOT_OCLOTHING)
+	to_chat(target, span_danger("Your deity grants you divine equipment!"))
+	to_chat(src, span_notice("You grant equipment to [target]."))
+
+/mob/camera/god/proc/conjure_calamity()
+	if(!god_nexus)
+		to_chat(src, span_warning("You must place your nexus first!"))
+		return
+	if(!can_afford(100))
+		return
+	if(!spend_faith(100))
+		return
+	var/turf/T = get_turf(src)
+	explosion(T, 0, 2, 4, 6)
+	to_chat(src, span_userdanger("You unleash divine calamity!"))
+
 /mob/camera/god/proc/update_nexus_health_hud()
 	if(!hud_used?.deity_health_display || !god_nexus)
 		return
