@@ -47,8 +47,9 @@
 	return ..()
 
 /obj/structure/divine/nexus/process(delta_time)
-	if(obj_integrity < max_integrity)
-		obj_integrity = min(obj_integrity + 2, max_integrity)
+	var/current_integrity = get_integrity()
+	if(current_integrity < max_integrity)
+		repair_damage(2)
 		if(deity)
 			deity.update_nexus_health_hud()
 
