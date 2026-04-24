@@ -60,7 +60,7 @@
 		deity.smite_target()
 
 /atom/movable/screen/hog/ConjureEquipment
-	icon_state = "Conjure Equipment"
+	icon_state = "Conjure_Equipment"
 	name = "Conjure Equipment"
 	desc = "Grant weapons and armor to a chosen follower."
 
@@ -78,6 +78,36 @@
 	if(istype(usr, /mob/camera/god))
 		var/mob/camera/god/deity = usr
 		deity.conjure_calamity()
+
+/atom/movable/screen/hog/ObfuscateStructure
+	icon_state = "obfuscate-structure"
+	name = "Obfuscate Structure"
+	desc = "Hide a structure from non-believers, making it appear as a mundane object."
+
+/atom/movable/screen/hog/ObfuscateStructure/Click()
+	if(istype(usr, /mob/camera/god))
+		var/mob/camera/god/deity = usr
+		deity.obfuscate_structure()
+
+/atom/movable/screen/hog/AppointProphet
+	icon_state = "appoint-pope"
+	name = "Appoint Prophet"
+	desc = "Promote a loyal follower to become your prophet."
+
+/atom/movable/screen/hog/AppointProphet/Click()
+	if(istype(usr, /mob/camera/god))
+		var/mob/camera/god/deity = usr
+		deity.appoint_prophet()
+
+/atom/movable/screen/hog/TransmitThought
+	icon_state = "transmit-thought"
+	name = "Transmit Thought"
+	desc = "Speak loudly through a target, broadcasting your voice to everyone nearby."
+
+/atom/movable/screen/hog/TransmitThought/Click()
+	if(istype(usr, /mob/camera/god))
+		var/mob/camera/god/deity = usr
+		deity.transmit_thought()
 
 /datum/hud/proc/hoggod_hud(mob/camera/god/deity)
 	if(!deity)
@@ -132,6 +162,18 @@
 
 	using = new /atom/movable/screen/hog/ConjureCalamity(null, src)
 	using.screen_loc = ui_storage2
+	static_inventory += using
+
+	using = new /atom/movable/screen/hog/ObfuscateStructure(null, src)
+	using.screen_loc = "EAST-1:28,NORTH-1:0"
+	static_inventory += using
+
+	using = new /atom/movable/screen/hog/AppointProphet(null, src)
+	using.screen_loc = "EAST-1:28,NORTH-2:0"
+	static_inventory += using
+
+	using = new /atom/movable/screen/hog/TransmitThought(null, src)
+	using.screen_loc = "EAST-1:28,NORTH-3:0"
 	static_inventory += using
 
 	if(mymob.client)
