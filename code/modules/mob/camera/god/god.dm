@@ -50,6 +50,13 @@
 			followers += mind
 	return followers
 
+/mob/camera/god/proc/pick_deity_name()
+	var/newname = tgui_input_text(src, "Choose your divine name:", "Divine Identity", real_name, MAX_NAME_LEN)
+	if(newname)
+		name = newname
+		real_name = newname
+		to_chat(src, span_notice("You shall be known as [newname]!"))
+
 /mob/camera/god/proc/can_afford(faith_cost)
 	if(faith < faith_cost)
 		to_chat(src, span_warning("Not enough faith! You have [faith]/[faith_cost]."))
@@ -285,6 +292,7 @@
 	. = ..()
 	if(hud_used)
 		hud_used.hoggod_hud(src)
+	pick_deity_name()
 	to_chat(src, span_notice("You are a deity!"))
 	to_chat(src, "You are worshipped by a cult. Use the buttons on your HUD to interact with the world.")
 
