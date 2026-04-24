@@ -193,3 +193,27 @@
 
 /mob/camera/god/Move(new_loc, direct)
 	loc = new_loc
+
+/mob/verb/become_red_god()
+	set name = "Become Red God"
+	set category = "Admin"
+
+	if(!check_rights(R_ADMIN))
+		return
+
+	if(mind)
+		mind.make_Handofgod_god(HOG_TEAM_RED)
+		message_admins("[key_name_admin(src)] has become a Red Deity.")
+		log_admin("[key_name(src)] has become a Red Deity.")
+
+/mob/verb/become_blue_god()
+	set name = "Become Blue God"
+	set category = "Admin"
+
+	if(!check_rights(R_ADMIN))
+		return
+
+	if(mind)
+		mind.make_Handofgod_god(HOG_TEAM_BLUE)
+		message_admins("[key_name_admin(src)] has become a Blue Deity.")
+		log_admin("[key_name(src)] has become a Blue Deity.")
