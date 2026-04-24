@@ -41,6 +41,12 @@
 		deity.check_death()
 	return ..()
 
+/obj/structure/divine/defensepylon
+	name = "defense pylon"
+	desc = "A defensive structure that attacks non-believers."
+	icon_state = "defensepylon"
+	max_integrity = 200
+
 /obj/structure/divine/powerpylon
 	name = "power pylon"
 	desc = "Generates faith for your deity."
