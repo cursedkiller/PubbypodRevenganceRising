@@ -17,6 +17,7 @@
 	var/list/obj/structure/divine/structures = list()
 	var/prophets_sacrificed_in_name = 0
 	var/alive_followers = 0
+	var/free_pylon_used = FALSE
 
 /mob/camera/god/Initialize(mapload)
 	. = ..()
@@ -106,7 +107,6 @@
 	if(!can_afford(HOG_FAITH_COST_STRUCTURE))
 		return
 	var/list/choices = list(
-		"Defense Pylon (Free)" = "free_pylon",
 		"Power Pylon" = /obj/structure/divine/powerpylon,
 		"Translocator" = /obj/structure/divine/translocator,
 		"Forge" = /obj/structure/divine/forge,
@@ -116,17 +116,20 @@
 		"Fountain" = /obj/structure/divine/fountain,
 		"Conduit" = /obj/structure/divine/conduit,
 		"Lazarus" = /obj/structure/divine/lazarus,
+		"Defense Pylon" = /obj/structure/divine/defensepylon,
 	)
 	var/chosen_name = tgui_input_list(src, "Choose a structure:", "Build Structure", choices)
 	if(!chosen_name)
 		return
 	var/build_path = choices[chosen_name]
-	if(build_path == "free_pylon")
+	if(build_path == /obj/structure/divine/defensepylon && !free_pylon_used)
+		free_pylon_used = TRUE
 		if(!spend_faith(HOG_FAITH_COST_STRUCTURE))
+			free_pylon_used = FALSE
 			return
 		var/obj/structure/divine/defensepylon/P = new(get_turf(src))
 		P.assign_deity(src)
-		to_chat(src, span_notice("You manifest a defense pylon!"))
+		to_chat(src, span_notice("You manifest a defense pylon! Future pylons will require construction."))
 		return
 	if(!spend_faith(HOG_FAITH_COST_STRUCTURE))
 		return
