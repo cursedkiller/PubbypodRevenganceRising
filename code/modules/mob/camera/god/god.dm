@@ -244,7 +244,8 @@
 		return
 	var/list/structs = list()
 	for(var/obj/structure/divine/S in structures)
-		structs += S
+		if(!istype(S, /obj/structure/divine/nexus))
+			structs += S
 	if(!length(structs))
 		to_chat(src, span_warning("You have no structures to obfuscate!"))
 		return
@@ -256,7 +257,8 @@
 	target.alpha = 50
 	target.name = "mundane structure"
 	target.desc = "Just a regular piece of station equipment."
-	to_chat(src, span_notice("You obfuscate [target]."))
+	target.density = FALSE
+	to_chat(src, span_notice("You obfuscate [target]. It can be revealed by clicking on it."))
 
 /mob/camera/god/proc/appoint_prophet()
 	if(!god_nexus)
