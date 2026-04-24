@@ -32,7 +32,12 @@
 	icon_state = "nexus"
 	max_integrity = HOG_NEXUS_MAX_INTEGRITY
 
+/obj/structure/divine/nexus/Initialize(mapload)
+	. = ..()
+	START_PROCESSING(SSobj, src)
+
 /obj/structure/divine/nexus/Destroy()
+	STOP_PROCESSING(SSobj, src)
 	if(deity)
 		deity.god_nexus = null
 		to_chat(deity, span_userdanger("Your nexus has been destroyed!"))
@@ -40,6 +45,12 @@
 		deity.refresh_followers()
 		deity.check_death()
 	return ..()
+
+/obj/structure/divine/nexus/process(delta_time)
+	if(obj_integrity < max_integrity)
+		obj_integrity = min(obj_integrity + 2, max_integrity)
+		if(deity)
+			deity.update_nexus_health_hud()
 
 /obj/structure/divine/defensepylon
 	name = "defense pylon"
