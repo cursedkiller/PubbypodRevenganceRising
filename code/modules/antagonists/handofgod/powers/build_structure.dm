@@ -38,4 +38,4 @@
 	CH.assign_deity(deity)
 	CH.setup_construction(build_path)
 	CH.visible_message(span_notice("A transparent, unfinished [chosen_name] appears!"))
-	StartCooldown()
+	start_cooldown()
