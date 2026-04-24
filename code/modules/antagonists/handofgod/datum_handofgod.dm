@@ -1,8 +1,8 @@
 /datum/antagonist/hog_god
-	name = "Hand of God"
+	name = "Hand of God God"
 	roundend_category = "hand of god"
 	antagpanel_category = "Hand of God"
-	show_in_antagpanel = FALSE
+	show_in_antagpanel = TRUE
 	banning_key = ROLE_HOG_GOD
 	required_living_playtime = 6
 	var/datum/team/hog/cult_team
