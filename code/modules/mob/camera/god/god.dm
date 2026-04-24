@@ -90,7 +90,19 @@
 		return
 	if(!can_afford(HOG_FAITH_COST_STRUCTURE))
 		return
-	var/list/choices = list("Defense Pylon" = /obj/structure/divine/defensepylon)
+	var/list/choices = list(
+		"Defense Pylon" = /obj/structure/divine/defensepylon,
+		"Power Pylon" = /obj/structure/divine/powerpylon,
+		"Translocator" = /obj/structure/divine/translocator,
+		"Forge" = /obj/structure/divine/forge,
+		"Sacrifice Altar" = /obj/structure/divine/sacrificealtar,
+		"Conversion Altar" = /obj/structure/divine/convertaltar,
+		"Shrine" = /obj/structure/divine/shrine,
+		"Ward" = /obj/structure/divine/ward,
+		"Fountain" = /obj/structure/divine/fountain,
+		"Conduit" = /obj/structure/divine/conduit,
+		"Lazarus" = /obj/structure/divine/lazarus,
+	)
 	var/chosen_name = tgui_input_list(src, "Choose a structure:", "Build Structure", choices)
 	if(!chosen_name)
 		return
