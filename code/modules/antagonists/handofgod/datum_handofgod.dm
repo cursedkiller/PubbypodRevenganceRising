@@ -34,6 +34,21 @@
 	to_chat(owner, span_userdanger("You are a deity! You are worshipped by a cult!"))
 	owner.announce_objectives()
 
+/datum/antagonist/hog_god/get_admin_commands()
+	. = ..()
+	.["Make Red God"] = CALLBACK(src, PROC_REF(admin_make_red_god))
+	.["Make Blue God"] = CALLBACK(src, PROC_REF(admin_make_blue_god))
+
+/datum/antagonist/hog_god/proc/admin_make_red_god(mob/admin)
+	owner.make_Handofgod_god(HOG_TEAM_RED)
+	message_admins("[key_name_admin(admin)] has made [key_name(owner)] a Red Deity.")
+	log_admin("[key_name(admin)] has made [key_name(owner)] a Red Deity.")
+
+/datum/antagonist/hog_god/proc/admin_make_blue_god(mob/admin)
+	owner.make_Handofgod_god(HOG_TEAM_BLUE)
+	message_admins("[key_name_admin(admin)] has made [key_name(owner)] a Blue Deity.")
+	log_admin("[key_name(admin)] has made [key_name(owner)] a Blue Deity.")
+
 /datum/antagonist/hog_cultist
 	name = "Hand of God Cultist"
 	roundend_category = "hand of god cultists"
@@ -92,6 +107,21 @@
 	cult_team.team_colour = team_colour
 	cult_team.add_member(owner)
 
+/datum/antagonist/hog_cultist/get_admin_commands()
+	. = ..()
+	.["Make Red Follower"] = CALLBACK(src, PROC_REF(admin_make_red))
+	.["Make Blue Follower"] = CALLBACK(src, PROC_REF(admin_make_blue))
+
+/datum/antagonist/hog_cultist/proc/admin_make_red(mob/admin)
+	owner.make_Handofgod_follower(HOG_TEAM_RED)
+	message_admins("[key_name_admin(admin)] has made [key_name(owner)] a Red Follower.")
+	log_admin("[key_name(admin)] has made [key_name(owner)] a Red Follower.")
+
+/datum/antagonist/hog_cultist/proc/admin_make_blue(mob/admin)
+	owner.make_Handofgod_follower(HOG_TEAM_BLUE)
+	message_admins("[key_name_admin(admin)] has made [key_name(owner)] a Blue Follower.")
+	log_admin("[key_name(admin)] has made [key_name(owner)] a Blue Follower.")
+
 /datum/antagonist/hog_cultist/prophet
 	name = "Hand of God Prophet"
 
@@ -106,6 +136,21 @@
 
 /datum/antagonist/hog_cultist/prophet/greet()
 	to_chat(owner, span_userdanger("You are the PROPHET of the [cult_team.team_colour] deity!"))
+
+/datum/antagonist/hog_cultist/prophet/get_admin_commands()
+	. = ..()
+	.["Make Red Prophet"] = CALLBACK(src, PROC_REF(admin_make_red_prophet))
+	.["Make Blue Prophet"] = CALLBACK(src, PROC_REF(admin_make_blue_prophet))
+
+/datum/antagonist/hog_cultist/prophet/proc/admin_make_red_prophet(mob/admin)
+	owner.make_Handofgod_prophet(HOG_TEAM_RED)
+	message_admins("[key_name_admin(admin)] has made [key_name(owner)] a Red Prophet.")
+	log_admin("[key_name(admin)] has made [key_name(owner)] a Red Prophet.")
+
+/datum/antagonist/hog_cultist/prophet/proc/admin_make_blue_prophet(mob/admin)
+	owner.make_Handofgod_prophet(HOG_TEAM_BLUE)
+	message_admins("[key_name_admin(admin)] has made [key_name(owner)] a Blue Prophet.")
+	log_admin("[key_name(admin)] has made [key_name(owner)] a Blue Prophet.")
 
 /datum/team/hog
 	name = "Hand of God Cult"
