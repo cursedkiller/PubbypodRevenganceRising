@@ -2583,8 +2583,6 @@
 #include "code\modules\antagonists\vampire\vassals\powers\recuperate.dm"
 #include "code\modules\antagonists\wishgranter\wishgranter.dm"
 #include "code\modules\antagonists\handofgod\datum_handofgod.dm"
-#include "code\modules\antagonists\handofgod\datum_hog_cultist.dm"
-#include "code\modules\antagonists\handofgod\datum_team_hog.dm"
 #include "code\modules\antagonists\handofgod\powers\place_nexus.dm"
 #include "code\modules\antagonists\handofgod\powers\god_speak.dm"
 #include "code\modules\antagonists\handofgod\powers\build_structure.dm"
