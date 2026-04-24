@@ -39,13 +39,6 @@
 		SEND_SIGNAL(src, COMSIG_HOG_NEXUS_DESTROYED, deity)
 	return ..()
 
-/obj/structure/divine/defensepylon
-	name = "defense pylon"
-	desc = "A defensive structure that attacks non-believers."
-	icon_state = "defensepylon"
-	max_integrity = 200
-	is_trap = TRUE
-
 /obj/structure/divine/powerpylon
 	name = "power pylon"
 	desc = "Generates faith for your deity."
@@ -109,39 +102,51 @@
 
 /obj/structure/divine/construction_holder
 	name = "unfinished structure"
-	desc = "An unfinished divine structure. Requires gems to complete."
+	desc = "An unfinished divine structure. Requires iron, glass, or iron rods to complete."
+	icon = 'icons/obj/hand_of_god_structures.dmi'
 	icon_state = "construction"
 	density = FALSE
 	max_integrity = 100
 	is_construction_holder = TRUE
 	var/obj/structure/divine/build_type = null
-	var/gems_required = 2
-	var/gems_inserted = 0
+	var/materials_required = 10
+	var/materials_inserted = 0
 
 /obj/structure/divine/construction_holder/proc/setup_construction(obj/structure/divine/build_path)
 	build_type = build_path
 	name = "unfinished [initial(build_path.name)]"
 
 /obj/structure/divine/construction_holder/attackby(obj/item/I, mob/user, params)
-	if(istype(I, /obj/item/stack/sheet/lessergem))
-		var/obj/item/stack/sheet/lessergem/gems = I
-		var/needed = gems_required - gems_inserted
-		if(needed <= 0)
-			to_chat(user, span_warning("It doesn't need more gems!"))
-			return
-		var/to_use = min(gems.amount, needed)
-		gems.use(to_use)
-		gems_inserted += to_use
-		to_chat(user, span_notice("You add [to_use] gems. ([gems_inserted]/[gems_required])"))
-		if(gems_inserted >= gems_required)
-			finish_construction()
+	if(istype(I, /obj/item/stack/sheet/iron))
+		var/obj/item/stack/sheet/iron/S = I
+		add_material(S, user)
+		return
+	if(istype(I, /obj/item/stack/sheet/glass))
+		var/obj/item/stack/sheet/glass/G = I
+		add_material(G, user)
+		return
+	if(istype(I, /obj/item/stack/rods))
+		var/obj/item/stack/rods/R = I
+		add_material(R, user)
 		return
 	return ..()
+
+/obj/structure/divine/construction_holder/proc/add_material(obj/item/stack/S, mob/user)
+	var/needed = materials_required - materials_inserted
+	if(needed <= 0)
+		to_chat(user, span_warning("It doesn't need more materials!"))
+		return
+	var/to_use = min(S.amount, needed)
+	S.use(to_use)
+	materials_inserted += to_use
+	to_chat(user, span_notice("You add [to_use] [S.name]. ([materials_inserted]/[materials_required])"))
+	if(materials_inserted >= materials_required)
+		finish_construction()
 
 /obj/structure/divine/construction_holder/proc/finish_construction()
 	if(!build_type)
 		return
-	visible_message(span_notice("[src] transforms!"))
+	visible_message(span_notice("[src] transforms into \a [initial(build_type.name)]!"))
 	var/obj/structure/divine/S = new build_type(get_turf(src))
 	S.assign_deity(deity)
 	qdel(src)
