@@ -11,13 +11,17 @@
 
 /atom/movable/screen/hog/PlaceNexus
 	icon_state = "nexus-spawn"
-	name = "Place Nexus"
-	desc = "Anchor yourself to this realm."
+	name = "Nexus"
+	desc = "Place your nexus or jump to it."
 
 /atom/movable/screen/hog/PlaceNexus/Click()
 	if(istype(usr, /mob/camera/god))
 		var/mob/camera/god/deity = usr
-		deity.place_nexus()
+		if(deity.god_nexus)
+			deity.forceMove(get_turf(deity.god_nexus))
+			to_chat(deity, span_notice("You return to your nexus."))
+		else
+			deity.place_nexus()
 
 /atom/movable/screen/hog/GodSpeak
 	icon_state = "God-Speak"
