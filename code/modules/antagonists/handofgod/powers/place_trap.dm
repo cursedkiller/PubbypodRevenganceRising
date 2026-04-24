@@ -1,4 +1,4 @@
-/datum/action/cooldown/hog/place_trap
+/datum/action/cooldown/hog_place_trap
 	name = "Rune Manifest"
 	desc = "Manifest a divine rune trap at your current location."
 	button_icon = 'icons/obj/hand_of_god_structures.dmi'
@@ -6,7 +6,7 @@
 	background_icon_state = "bg_demon"
 	cooldown_time = 15 SECONDS
 
-/datum/action/cooldown/hog/place_trap/IsAvailable(feedback = FALSE)
+/datum/action/cooldown/hog_place_trap/IsAvailable(feedback = FALSE)
 	. = ..()
 	if(!.)
 		return FALSE
@@ -21,11 +21,10 @@
 		return FALSE
 	return TRUE
 
-/datum/action/cooldown/hog/place_trap/Activate(atom/target)
+/datum/action/cooldown/hog_place_trap/Activate(atom/target)
 	var/mob/camera/god/deity = owner
 	if(!deity.spend_faith(HOG_FAITH_COST_TRAP))
 		return
-
 	new /obj/structure/divine/defensepylon(get_turf(deity))
 	to_chat(deity, span_notice("You manifest a defense pylon."))
 	start_cooldown()
