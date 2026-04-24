@@ -145,8 +145,7 @@
 	to_chat(target, span_userdanger("You are struck by divine wrath!"))
 	target.adjustFireLoss(30)
 	target.adjustBruteLoss(20)
-	target.electrocute_animation(15)
-	playsound(target, 'sound/magic/lightningbolt.ogg', 50, 1)
+	playsound(target, 'sound/machines/defib_zap.ogg', 50, 1)
 	to_chat(src, span_notice("You smite [target]!"))
 
 /mob/camera/god/proc/conjure_equipment()
