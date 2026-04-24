@@ -106,6 +106,7 @@
 	if(!can_afford(HOG_FAITH_COST_STRUCTURE))
 		return
 	var/list/choices = list(
+		"Defense Pylon (Free)" = "free_pylon",
 		"Power Pylon" = /obj/structure/divine/powerpylon,
 		"Translocator" = /obj/structure/divine/translocator,
 		"Forge" = /obj/structure/divine/forge,
@@ -119,11 +120,19 @@
 	var/chosen_name = tgui_input_list(src, "Choose a structure:", "Build Structure", choices)
 	if(!chosen_name)
 		return
+	var/build_path = choices[chosen_name]
+	if(build_path == "free_pylon")
+		if(!spend_faith(HOG_FAITH_COST_STRUCTURE))
+			return
+		var/obj/structure/divine/defensepylon/P = new(get_turf(src))
+		P.assign_deity(src)
+		to_chat(src, span_notice("You manifest a defense pylon!"))
+		return
 	if(!spend_faith(HOG_FAITH_COST_STRUCTURE))
 		return
 	var/obj/structure/divine/construction_holder/CH = new(get_turf(src))
 	CH.assign_deity(src)
-	CH.setup_construction(choices[chosen_name])
+	CH.setup_construction(build_path)
 	CH.visible_message(span_notice("A transparent, unfinished [chosen_name] appears!"))
 
 /mob/camera/god/proc/place_trap()
@@ -224,6 +233,78 @@
 	explosion(T, 0, 2, 4, 6)
 	to_chat(src, span_userdanger("You unleash divine calamity!"))
 
+/mob/camera/god/proc/obfuscate_structure()
+	if(!god_nexus)
+		to_chat(src, span_warning("You must place your nexus first!"))
+		return
+	if(!can_afford(25))
+		return
+	var/list/structs = list()
+	for(var/obj/structure/divine/S in structures)
+		structs += S
+	if(!length(structs))
+		to_chat(src, span_warning("You have no structures to obfuscate!"))
+		return
+	var/obj/structure/divine/target = tgui_input_list(src, "Choose a structure to hide:", "Obfuscate Structure", structs)
+	if(!target)
+		return
+	if(!spend_faith(25))
+		return
+	target.alpha = 50
+	target.name = "mundane structure"
+	target.desc = "Just a regular piece of station equipment."
+	to_chat(src, span_notice("You obfuscate [target]."))
+
+/mob/camera/god/proc/appoint_prophet()
+	if(!god_nexus)
+		to_chat(src, span_warning("You must place your nexus first!"))
+		return
+	if(!can_afford(40))
+		return
+	var/list/followers = list()
+	for(var/datum/mind/M in get_my_followers())
+		if(M.current && M.current.stat != DEAD && ishuman(M.current) && !IS_HOG_PROPHET(M.current))
+			followers += M.current
+	if(!length(followers))
+		to_chat(src, span_warning("You have no eligible followers to promote!"))
+		return
+	var/mob/living/carbon/human/target = tgui_input_list(src, "Choose a follower to promote:", "Appoint Prophet", followers)
+	if(!target)
+		return
+	if(!spend_faith(40))
+		return
+	target.mind.make_Handofgod_prophet(team_colour)
+	to_chat(target, span_danger("<B>You have been appointed as the prophet of your deity!</B>"))
+	to_chat(src, span_notice("You appoint [target] as your prophet."))
+
+/mob/camera/god/proc/transmit_thought()
+	if(!god_nexus)
+		to_chat(src, span_warning("You must place your nexus first!"))
+		return
+	if(!can_afford(35))
+		return
+	var/list/targets = list()
+	for(var/mob/living/H in view(7, src))
+		if(H.mind)
+			targets += H
+	for(var/obj/machinery/M in view(7, src))
+		targets += M
+	for(var/obj/structure/S in view(7, src))
+		targets += S
+	if(!length(targets))
+		to_chat(src, span_warning("No valid targets in range!"))
+		return
+	var/atom/target = tgui_input_list(src, "Choose a target to speak through:", "Transmit Thought", targets)
+	if(!target)
+		return
+	var/msg = tgui_input_text(src, "What message to broadcast?", "Transmit Thought", "", MAX_MESSAGE_LEN, multiline = TRUE)
+	if(!msg)
+		return
+	if(!spend_faith(35))
+		return
+	target.visible_message(span_userdanger("<B>[target] booms with a divine voice: [msg]</B>"))
+	to_chat(src, span_notice("Your voice echoes through [target]."))
+
 /mob/camera/god/proc/update_nexus_health_hud()
 	if(!hud_used?.deity_health_display || !god_nexus)
 		return
@@ -255,8 +336,8 @@
 	update_follower_hud()
 
 /mob/camera/god/proc/check_death()
-	if(!god_nexus && !alive_followers)
-		to_chat(src, span_userdanger("Your nexus is destroyed and you have no followers left. Your existence fades away..."))
+	if(!god_nexus || !alive_followers)
+		to_chat(src, span_userdanger("Your connection to this realm has been severed. Your existence fades away..."))
 		qdel(src)
 
 /mob/camera/god/proc/add_faith(amount)
