@@ -60,7 +60,7 @@
 		deity.smite_target()
 
 /atom/movable/screen/hog/ConjureEquipment
-	icon_state = "Conjure_Equipment"
+	icon_state = "Conkure Equipment"
 	name = "Conjure Equipment"
 	desc = "Grant weapons and armor to a chosen follower."
 
@@ -99,16 +99,6 @@
 		var/mob/camera/god/deity = usr
 		deity.appoint_prophet()
 
-/atom/movable/screen/hog/TransmitThought
-	icon_state = "transmit-thought"
-	name = "Transmit Thought"
-	desc = "Speak loudly through a target."
-
-/atom/movable/screen/hog/TransmitThought/Click()
-	if(istype(usr, /mob/camera/god))
-		var/mob/camera/god/deity = usr
-		deity.transmit_thought()
-
 /datum/hud/proc/hoggod_hud(mob/camera/god/deity)
 	if(!deity)
 		return
@@ -136,7 +126,6 @@
 
 	var/atom/movable/screen/hog/using
 
-	// Top row - Blob layout
 	using = new /atom/movable/screen/hog/GodSpeak(null, src)
 	using.screen_loc = ui_inventory
 	static_inventory += using
@@ -145,7 +134,6 @@
 	using.screen_loc = ui_zonesel
 	static_inventory += using
 
-	// Middle row
 	using = new /atom/movable/screen/hog/BuildStructure(null, src)
 	using.screen_loc = ui_belt
 	static_inventory += using
@@ -154,7 +142,6 @@
 	using.screen_loc = ui_back
 	static_inventory += using
 
-	// Hands row
 	using = new /atom/movable/screen/hog/Smite(null, src)
 	using.screen_loc = ui_hand_position(1)
 	static_inventory += using
@@ -163,7 +150,6 @@
 	using.screen_loc = ui_hand_position(2)
 	static_inventory += using
 
-	// Storage row
 	using = new /atom/movable/screen/hog/ConjureCalamity(null, src)
 	using.screen_loc = ui_storage1
 	static_inventory += using
@@ -172,13 +158,8 @@
 	using.screen_loc = ui_storage2
 	static_inventory += using
 
-	// Bottom row
 	using = new /atom/movable/screen/hog/AppointProphet(null, src)
 	using.screen_loc = "CENTER-4:16,SOUTH:5"
-	static_inventory += using
-
-	using = new /atom/movable/screen/hog/TransmitThought(null, src)
-	using.screen_loc = "CENTER-3:16,SOUTH:5"
 	static_inventory += using
 
 	if(mymob.client)
