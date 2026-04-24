@@ -79,7 +79,7 @@
 /obj/structure/divine/shrine
 	name = "shrine"
 	desc = "A holy shrine that boosts nearby followers."
-	icon_state = "shrine"
+	icon_state = "Shrine"
 	max_integrity = 150
 
 /obj/structure/divine/ward
