@@ -37,6 +37,8 @@
 		deity.god_nexus = null
 		to_chat(deity, span_userdanger("Your nexus has been destroyed!"))
 		SEND_SIGNAL(src, COMSIG_HOG_NEXUS_DESTROYED, deity)
+		deity.refresh_followers()
+		deity.check_death()
 	return ..()
 
 /obj/structure/divine/powerpylon
