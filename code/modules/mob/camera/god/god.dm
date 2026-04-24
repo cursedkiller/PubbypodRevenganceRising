@@ -112,7 +112,6 @@
 		"Sacrifice Altar" = /obj/structure/divine/sacrificealtar,
 		"Conversion Altar" = /obj/structure/divine/convertaltar,
 		"Shrine" = /obj/structure/divine/shrine,
-		"Ward" = /obj/structure/divine/ward,
 		"Fountain" = /obj/structure/divine/fountain,
 		"Conduit" = /obj/structure/divine/conduit,
 		"Lazarus" = /obj/structure/divine/lazarus,
@@ -133,29 +132,36 @@
 		return
 	if(!can_afford(HOG_FAITH_COST_TRAP))
 		return
-	if(!spend_faith(HOG_FAITH_COST_TRAP))
-		return
 	var/list/rune_choices = list(
 		"Shock Trap" = /obj/structure/trap/stun,
 		"Frost Trap" = /obj/structure/trap/damage,
 		"Fire Trap" = /obj/structure/trap/fire,
 		"Earth Trap" = /obj/structure/trap/damage,
+		"Ward" = /obj/structure/divine/ward,
 	)
 	var/chosen_name = tgui_input_list(src, "Choose a rune to manifest:", "Rune Manifest", rune_choices)
 	if(!chosen_name)
 		return
+	if(!spend_faith(HOG_FAITH_COST_TRAP))
+		return
 	var/trap_type = rune_choices[chosen_name]
-	var/obj/structure/trap/T = new trap_type(get_turf(src))
-	T.icon = 'icons/obj/hand_of_god_structures.dmi'
-	switch(chosen_name)
-		if("Shock Trap")
-			T.icon_state = "trap-shock"
-		if("Frost Trap")
-			T.icon_state = "trap-frost"
-		if("Fire Trap")
-			T.icon_state = "trap-fire"
-		if("Earth Trap")
-			T.icon_state = "trap-earth"
+	var/atom/T
+	if(ispath(trap_type, /obj/structure/divine))
+		T = new trap_type(get_turf(src))
+		var/obj/structure/divine/D = T
+		D.assign_deity(src)
+	else
+		T = new trap_type(get_turf(src))
+		T.icon = 'icons/obj/hand_of_god_structures.dmi'
+		switch(chosen_name)
+			if("Shock Trap")
+				T.icon_state = "trap-shock"
+			if("Frost Trap")
+				T.icon_state = "trap-frost"
+			if("Fire Trap")
+				T.icon_state = "trap-fire"
+			if("Earth Trap")
+				T.icon_state = "trap-earth"
 	to_chat(src, span_notice("You manifest a [chosen_name]."))
 
 /mob/camera/god/proc/smite_target()
