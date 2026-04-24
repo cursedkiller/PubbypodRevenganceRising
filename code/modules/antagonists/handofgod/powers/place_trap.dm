@@ -28,4 +28,4 @@
 
 	new /obj/structure/divine/defensepylon(get_turf(deity))
 	to_chat(deity, span_notice("You manifest a defense pylon."))
-	StartCooldown()
+	start_cooldown()
