@@ -7,21 +7,20 @@
 	deity_health_display.icon = 'icons/obj/hand_of_god_structures.dmi'
 	deity_health_display.icon_state = "deity_nexus"
 	deity_health_display.screen_loc = ui_deityhealth
+	infodisplay += deity_health_display
 
 	deity_power_display = new /atom/movable/screen()
 	deity_power_display.name = "Faith"
 	deity_power_display.icon = 'icons/obj/hand_of_god_structures.dmi'
 	deity_power_display.icon_state = "deity_power"
 	deity_power_display.screen_loc = ui_deitypower
+	infodisplay += deity_power_display
 
 	deity_follower_display = new /atom/movable/screen()
 	deity_follower_display.name = "Followers"
 	deity_follower_display.icon = 'icons/obj/hand_of_god_structures.dmi'
 	deity_follower_display.icon_state = "deity_followers"
 	deity_follower_display.screen_loc = ui_deityfollowers
-
-	infodisplay += deity_health_display
-	infodisplay += deity_power_display
 	infodisplay += deity_follower_display
 
 	if(mymob.client)
