@@ -31,6 +31,22 @@
 	structures.Cut()
 	return ..()
 
+/mob/camera/god/ClickOn(atom/A, params)
+	var/list/modifiers = params2list(params)
+	if(LAZYACCESS(modifiers, SHIFT_CLICK))
+		ShiftClickOn(A)
+		return
+	if(LAZYACCESS(modifiers, CTRL_CLICK))
+		CtrlClickOn(A)
+		return
+	if(LAZYACCESS(modifiers, ALT_CLICK))
+		AltClickOn(A)
+		return
+	if(isliving(A))
+		transmit_thought(A)
+		return
+	..()
+
 /mob/camera/god/proc/start_death_check()
 	if(QDELETED(src))
 		return
@@ -283,32 +299,18 @@
 	to_chat(target, span_danger("<B>You have been appointed as the prophet of your deity!</B>"))
 	to_chat(src, span_notice("You appoint [target] as your prophet."))
 
-/mob/camera/god/proc/transmit_thought()
+/mob/camera/god/proc/transmit_thought(mob/living/target)
 	if(!god_nexus)
 		to_chat(src, span_warning("You must place your nexus first!"))
 		return
 	if(!can_afford(35))
 		return
-	var/list/targets = list()
-	for(var/mob/living/H in view(7, src))
-		if(H.mind)
-			targets += H
-	for(var/obj/machinery/M in view(7, src))
-		targets += M
-	for(var/obj/structure/S in view(7, src))
-		targets += S
-	if(!length(targets))
-		to_chat(src, span_warning("No valid targets in range!"))
-		return
-	var/atom/target = tgui_input_list(src, "Choose a target to speak through:", "Transmit Thought", targets)
-	if(!target)
-		return
-	var/msg = tgui_input_text(src, "What message to broadcast?", "Transmit Thought", "", MAX_MESSAGE_LEN, multiline = TRUE)
+	var/msg = tgui_input_text(src, "What message to broadcast through [target]?", "Transmit Thought", "", MAX_MESSAGE_LEN, multiline = TRUE)
 	if(!msg)
 		return
 	if(!spend_faith(35))
 		return
-	target.visible_message(span_userdanger("<B>[target] booms with a divine voice: [msg]</B>"))
+	target.say(msg, forced = "divine thought")
 	to_chat(src, span_notice("Your voice echoes through [target]."))
 
 /mob/camera/god/proc/update_nexus_health_hud()
