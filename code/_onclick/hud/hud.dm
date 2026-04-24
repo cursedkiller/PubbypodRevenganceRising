@@ -36,6 +36,10 @@ GLOBAL_LIST_INIT(available_ui_styles, list(
 
 	var/atom/movable/screen/combo/combo_display
 
+	var/atom/movable/screen/deity_health_display
+	var/atom/movable/screen/deity_power_display
+	var/atom/movable/screen/deity_follower_display
+
 	var/atom/movable/screen/action_intent
 	var/atom/movable/screen/zone_select
 	var/atom/movable/screen/pull_icon
@@ -133,6 +137,9 @@ GLOBAL_LIST_INIT(available_ui_styles, list(
 	alien_plasma_display = null
 	alien_queen_finder = null
 	combo_display = null
+	deity_health_display = null
+	deity_power_display = null
+	deity_follower_display = null
 
 	QDEL_LIST_ASSOC_VAL(plane_masters)
 	QDEL_LIST_ASSOC_VAL(plane_master_controllers)
