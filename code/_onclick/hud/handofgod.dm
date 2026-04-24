@@ -60,7 +60,7 @@
 		deity.smite_target()
 
 /atom/movable/screen/hog/ConjureEquipment
-	icon_state = "Conkure Equipment"
+	icon_state = "Conjure Equipment"
 	name = "Conjure Equipment"
 	desc = "Grant weapons and armor to a chosen follower."
 
