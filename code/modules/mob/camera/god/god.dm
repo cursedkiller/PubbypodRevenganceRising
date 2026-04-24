@@ -26,7 +26,7 @@
 
 /mob/camera/god/Destroy()
 	if(ghostimage)
-		ghost_darkness_images -= ghostimage
+		GLOB.ghost_darkness_images -= ghostimage
 		updateallghostimages()
 	if(god_nexus)
 		QDEL_NULL(god_nexus)
@@ -149,9 +149,9 @@
 /mob/camera/god/update_icons()
 	icon_state = "marker-[team_colour]"
 	if(ghostimage)
-		ghost_darkness_images -= ghostimage
+		GLOB.ghost_darkness_images -= ghostimage
 	ghostimage = image(icon, src, icon_state)
-	ghost_darkness_images |= ghostimage
+	GLOB.ghost_darkness_images |= ghostimage
 	updateallghostimages()
 
 /mob/camera/god/Login()
@@ -159,16 +159,16 @@
 	if(hud_used)
 		hud_used.hoggod_hud(src)
 
-	var/datum/action/cooldown/hog/place_nexus/nexus_action = new(src)
+	var/datum/action/cooldown/hog_place_nexus/nexus_action = new(src)
 	nexus_action.Grant(src)
 
-	var/datum/action/cooldown/hog/god_speak/speak_action = new(src)
+	var/datum/action/cooldown/hog_god_speak/speak_action = new(src)
 	speak_action.Grant(src)
 
-	var/datum/action/cooldown/hog/build_structure/build_action = new(src)
+	var/datum/action/cooldown/hog_build_structure/build_action = new(src)
 	build_action.Grant(src)
 
-	var/datum/action/cooldown/hog/place_trap/trap_action = new(src)
+	var/datum/action/cooldown/hog_place_trap/trap_action = new(src)
 	trap_action.Grant(src)
 
 	to_chat(src, span_notice("You are a deity!"))
