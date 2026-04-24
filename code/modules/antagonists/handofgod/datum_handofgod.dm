@@ -12,12 +12,6 @@
 
 /datum/antagonist/hog_god/create_team(datum/team/hog/new_team)
 	if(!new_team)
-		for(var/datum/antagonist/hog_god/existing in GLOB.antagonists)
-			if(!existing.owner)
-				continue
-			if(existing.cult_team)
-				cult_team = existing.cult_team
-				return
 		cult_team = new /datum/team/hog()
 		cult_team.setup_team()
 		return
@@ -53,7 +47,7 @@
 
 /datum/antagonist/hog_cultist/create_team(datum/team/hog/new_team)
 	if(!new_team)
-		for(var/datum/antagonist/hog_god/god in GLOB.antagonists)
+		for(var/datum/antagonist/hog_god/god in GLOB.active_antagonists)
 			if(!god.owner)
 				continue
 			if(god.cult_team)
