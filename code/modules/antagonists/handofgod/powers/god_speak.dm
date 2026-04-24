@@ -23,4 +23,4 @@
 	if(!msg)
 		return
 	deity.god_speak(msg)
-	StartCooldown()
+	start_cooldown()
