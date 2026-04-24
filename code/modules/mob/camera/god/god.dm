@@ -22,12 +22,20 @@
 	. = ..()
 	update_icons()
 	addtimer(CALLBACK(src, PROC_REF(force_place_nexus)), HOG_NEXUS_FORCE_TIME)
+	addtimer(CALLBACK(src, PROC_REF(start_death_check)), 30 SECONDS)
 
 /mob/camera/god/Destroy()
 	if(god_nexus)
 		QDEL_NULL(god_nexus)
 	structures.Cut()
 	return ..()
+
+/mob/camera/god/proc/start_death_check()
+	if(QDELETED(src))
+		return
+	refresh_followers()
+	check_death()
+	addtimer(CALLBACK(src, PROC_REF(start_death_check)), 30 SECONDS)
 
 /mob/camera/god/proc/get_my_followers()
 	RETURN_TYPE(/list)
@@ -231,13 +239,11 @@
 	for(var/datum/mind/mind as anything in get_my_followers())
 		if(mind.current && mind.current.stat != DEAD)
 			alive_followers++
-	if(!alive_followers)
-		check_death()
 	update_follower_hud()
 
 /mob/camera/god/proc/check_death()
-	if(!alive_followers)
-		to_chat(src, span_userdanger("You no longer have any followers. Your existence fades away..."))
+	if(!god_nexus && !alive_followers)
+		to_chat(src, span_userdanger("Your nexus is destroyed and you have no followers left. Your existence fades away..."))
 		qdel(src)
 
 /mob/camera/god/proc/add_faith(amount)
