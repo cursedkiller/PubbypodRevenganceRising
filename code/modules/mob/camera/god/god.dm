@@ -24,6 +24,7 @@
 	update_icons()
 	addtimer(CALLBACK(src, PROC_REF(force_place_nexus)), HOG_NEXUS_FORCE_TIME)
 	addtimer(CALLBACK(src, PROC_REF(start_death_check)), 30 SECONDS)
+	addtimer(CALLBACK(src, PROC_REF(start_faith_regen)), 30 SECONDS)
 
 /mob/camera/god/Destroy()
 	if(god_nexus)
@@ -53,6 +54,23 @@
 	refresh_followers()
 	check_death()
 	addtimer(CALLBACK(src, PROC_REF(start_death_check)), 30 SECONDS)
+
+/mob/camera/god/proc/start_faith_regen()
+	if(QDELETED(src))
+		return
+	regenerate_faith()
+	addtimer(CALLBACK(src, PROC_REF(start_faith_regen)), 30 SECONDS)
+
+/mob/camera/god/proc/regenerate_faith()
+	var/regen_amount = 1
+	if(god_nexus)
+		regen_amount += 1
+	for(var/obj/structure/divine/conduit/C in structures)
+		regen_amount += 1
+	for(var/obj/structure/divine/powerpylon/P in structures)
+		regen_amount += 1
+	regen_amount += round(alive_followers * 0.5)
+	add_faith(regen_amount)
 
 /mob/camera/god/proc/get_my_followers()
 	RETURN_TYPE(/list)
@@ -340,6 +358,7 @@
 	for(var/datum/mind/mind as anything in get_my_followers())
 		if(mind.current && mind.current.stat != DEAD)
 			alive_followers++
+	max_faith = HOG_FAITH_MAX + (alive_followers * 20)
 	update_follower_hud()
 
 /mob/camera/god/proc/check_death()
