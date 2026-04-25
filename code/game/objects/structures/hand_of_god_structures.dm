@@ -1,306 +1,173 @@
-/obj/structure/divine
-	name = "divine structure"
-	desc = "A structure built by the followers of a deity."
+/atom/movable/screen/hog
 	icon = 'icons/obj/hand_of_god_structures.dmi'
-	density = TRUE
-	anchored = TRUE
-	max_integrity = 200
-	var/mob/camera/god/deity = null
-	var/is_trap = FALSE
-	var/is_construction_holder = FALSE
+	mouse_over_pointer = MOUSE_HAND_POINTER
 
-/obj/structure/divine/proc/assign_deity(mob/camera/god/G)
-	deity = G
-	if(G)
-		LAZYADD(G.structures, src)
-		update_icon()
-
-/obj/structure/divine/Destroy()
-	if(deity)
-		LAZYREMOVE(deity.structures, src)
-		deity = null
-	return ..()
-
-/obj/structure/divine/update_icon()
-	if(!deity)
-		return
-	icon_state = "[initial(icon_state)]-[deity.team_colour]"
-
-/obj/structure/divine/nexus
-	name = "nexus"
-	desc = "The anchor of a deity in this realm."
-	icon_state = "nexus"
-	max_integrity = HOG_NEXUS_MAX_INTEGRITY
-
-/obj/structure/divine/nexus/Initialize(mapload)
+/atom/movable/screen/hog/MouseEntered(location, control, params)
 	. = ..()
-	START_PROCESSING(SSobj, src)
+	openToolTip(usr, src, params, title = name, content = desc)
 
-/obj/structure/divine/nexus/Destroy()
-	STOP_PROCESSING(SSobj, src)
-	if(deity)
-		deity.god_nexus = null
-		to_chat(deity, span_userdanger("Your nexus has been destroyed!"))
-		SEND_SIGNAL(src, COMSIG_HOG_NEXUS_DESTROYED, deity)
-		deity.refresh_followers()
-		deity.check_death()
-	return ..()
+/atom/movable/screen/hog/MouseExited()
+	closeToolTip(usr)
 
-/obj/structure/divine/nexus/process(delta_time)
-	var/current_integrity = get_integrity()
-	if(current_integrity < max_integrity)
-		repair_damage(2)
-		if(deity)
-			deity.update_nexus_health_hud()
+/atom/movable/screen/hog/PlaceNexus
+	icon_state = "nexus-spawn"
+	name = "Nexus"
+	desc = "Place your nexus or jump to it."
 
-/obj/structure/divine/defensepylon
-	name = "defense pylon"
-	desc = "A defensive structure that attacks non-believers."
-	icon_state = "defensepylon"
-	max_integrity = 200
-
-/obj/structure/divine/powerpylon
-	name = "power pylon"
-	desc = "Generates faith for your deity."
-	icon_state = "powerpylon"
-	max_integrity = 150
-
-/obj/structure/divine/translocator
-	name = "translocator"
-	desc = "Allows followers to teleport between translocators."
-	icon_state = "translocator"
-	max_integrity = 200
-
-/obj/structure/divine/forge
-	name = "forge"
-	desc = "Creates divine equipment for followers."
-	icon_state = "forge"
-	max_integrity = 300
-
-/obj/structure/divine/convertaltar
-	name = "conversion altar"
-	desc = "Used to convert crew members and rival cultists to your deity. Drag a target onto it to begin."
-	icon_state = "convertaltar"
-	max_integrity = 250
-	var/converting = FALSE
-
-/obj/structure/divine/convertaltar/attackby(obj/item/I, mob/user, params)
-	return
-
-/obj/structure/divine/convertaltar/MouseDrop_T(atom/dropped, mob/user)
-	if(!ishuman(dropped) || !ishuman(user))
-		return
-	if(user == dropped)
-		return
-	if(!deity)
-		to_chat(user, span_warning("This altar is not connected to a deity!"))
-		return
-	if(!IS_HOG_CULTIST(user))
-		to_chat(user, span_warning("You don't know how to use this!"))
-		return
-	if(converting)
-		to_chat(user, span_warning("The altar is already in use!"))
-		return
-
-	var/mob/living/carbon/human/target = dropped
-	INVOKE_ASYNC(src, PROC_REF(convert_target), target, user)
-
-/obj/structure/divine/convertaltar/proc/convert_target(mob/living/carbon/human/target, mob/living/carbon/human/user)
-	converting = TRUE
-
-	if(IS_HOG_PROPHET(target))
-		to_chat(user, span_warning("A rival prophet's faith is too strong! They can only be sacrificed."))
-		converting = FALSE
-		return
-
-	if(IS_HOG_CULTIST(target))
-		var/datum/antagonist/hog_cultist/C = target.mind.has_antag_datum(/datum/antagonist/hog_cultist)
-		if(C?.cult_team?.team_colour == deity.team_colour)
-			to_chat(user, span_warning("[target] is already a follower of your deity!"))
-			converting = FALSE
-			return
-
-		user.visible_message(span_warning("[user] begins purging [target]'s faith at the altar..."), span_notice("You begin purging [target]'s faith..."))
-		if(!do_after(user, 15 SECONDS, target))
-			converting = FALSE
-			return
-		target.mind.remove_antag_datum(/datum/antagonist/hog_cultist)
-		target.visible_message(span_warning("[target]'s faith has been stripped away!"), span_userdanger("Your faith has been purged!"))
-
-		user.visible_message(span_warning("[user] begins converting [target] to a new faith..."), span_notice("You begin converting [target] to your deity..."))
-		if(!do_after(user, 10 SECONDS, target))
-			converting = FALSE
-			return
-		target.mind.make_Handofgod_follower(deity.team_colour)
-		target.visible_message(span_warning("[target]'s eyes glow as they embrace a new faith!"), span_danger("<B>You have been converted to the [deity.team_colour] deity!</B>"))
-		to_chat(user, span_notice("Conversion complete!"))
-		converting = FALSE
-		return
-
-	if(HAS_TRAIT(target, TRAIT_MINDSHIELD))
-		to_chat(user, span_warning("[target] is protected by a mindshield!"))
-		converting = FALSE
-		return
-
-	if(target.stat == DEAD)
-		to_chat(user, span_warning("[target] is dead and cannot be converted!"))
-		converting = FALSE
-		return
-
-	user.visible_message(span_warning("[user] begins converting [target] at the altar..."), span_notice("You begin converting [target] to your deity..."))
-	if(!do_after(user, 10 SECONDS, target))
-		converting = FALSE
-		return
-
-	target.mind.make_Handofgod_follower(deity.team_colour)
-	target.visible_message(span_warning("[target]'s eyes glow as they are converted!"), span_danger("<B>You have been converted to the [deity.team_colour] deity!</B>"))
-	to_chat(user, span_notice("Conversion complete!"))
-	converting = FALSE
-
-/obj/structure/divine/sacrificealtar
-	name = "sacrifice altar"
-	desc = "Used to sacrifice beings for gems or faith. Drag a target onto it to begin."
-	icon_state = "sacrificealtar"
-	max_integrity = 250
-	var/sacrificing = FALSE
-
-/obj/structure/divine/sacrificealtar/attackby(obj/item/I, mob/user, params)
-	return
-
-/obj/structure/divine/sacrificealtar/MouseDrop_T(atom/dropped, mob/user)
-	if(!ishuman(dropped) || !ishuman(user))
-		return
-	if(user == dropped)
-		return
-	if(!deity)
-		to_chat(user, span_warning("This altar is not connected to a deity!"))
-		return
-	if(!IS_HOG_CULTIST(user))
-		to_chat(user, span_warning("You don't know how to use this!"))
-		return
-	if(sacrificing)
-		to_chat(user, span_warning("The altar is already in use!"))
-		return
-
-	var/mob/living/carbon/human/target = dropped
-	INVOKE_ASYNC(src, PROC_REF(sacrifice_target), target, user)
-
-/obj/structure/divine/sacrificealtar/proc/sacrifice_target(mob/living/carbon/human/target, mob/living/carbon/human/user)
-	sacrificing = TRUE
-
-	user.visible_message(span_warning("[user] drags [target] onto the sacrifice altar!"), span_danger("You begin sacrificing [target]..."))
-	if(!do_after(user, 8 SECONDS, target))
-		sacrificing = FALSE
-		return
-
-	if(IS_HOG_PROPHET(target))
-		new /obj/item/stack/sheet/greatergem(get_turf(src))
-		target.visible_message(span_warning("[target] bursts into divine flames, collapsing into a husk!"), span_userdanger("Your body is consumed by divine fire!"))
-		target.death()
-		target.adjustFireLoss(200)
-		target.update_body()
-		to_chat(user, span_notice("A greater gem materializes from the rival prophet."))
-		sacrificing = FALSE
-		return
-
-	if(IS_HOG_CULTIST(target))
-		var/datum/antagonist/hog_cultist/C = target.mind.has_antag_datum(/datum/antagonist/hog_cultist)
-		if(C?.cult_team?.team_colour == deity.team_colour)
-			target.visible_message(span_warning("[target]'s body ignites as they give themselves to their deity!"), span_userdanger("You give your life for your deity!"))
-			target.death()
-			target.adjustFireLoss(200)
-			target.update_body()
-			deity.add_faith(50)
-			to_chat(user, span_notice("Sacrifice complete! Your deity gains 50 faith."))
-			to_chat(deity, span_notice("[target] has been sacrificed in your name! You gain 50 faith."))
-			sacrificing = FALSE
-			return
-
-		new /obj/item/stack/sheet/lessergem(get_turf(src))
-		target.visible_message(span_warning("[target] bursts into flames on the altar!"), span_userdanger("You are consumed by divine fire!"))
-		target.death()
-		target.adjustFireLoss(200)
-		target.update_body()
-		to_chat(user, span_notice("A lesser gem materializes from the rival cultist."))
-		sacrificing = FALSE
-		return
-
-	new /obj/item/stack/sheet/lessergem(get_turf(src))
-	target.visible_message(span_warning("[target] bursts into flames on the altar!"), span_userdanger("You are sacrificed!"))
-	target.death()
-	target.adjustFireLoss(200)
-	target.update_body()
-	to_chat(user, span_notice("A lesser gem materializes."))
-	sacrificing = FALSE
-
-/obj/structure/divine/shrine
-	name = "shrine"
-	desc = "A holy shrine that boosts nearby followers."
-	icon_state = "Shrine"
-	max_integrity = 150
-
-/obj/structure/divine/ward
-	name = "ward"
-	desc = "A protective ward that damages non-believers nearby."
-	icon_state = "ward"
-	max_integrity = 100
-	is_trap = TRUE
-
-/obj/structure/divine/fountain
-	name = "fountain"
-	desc = "A blessed fountain that heals nearby followers."
-	icon_state = "fountain"
-	max_integrity = 200
-
-/obj/structure/divine/conduit
-	name = "conduit"
-	desc = "Channels divine energy, increasing faith generation."
-	icon_state = "conduit"
-	max_integrity = 150
-
-/obj/structure/divine/lazarus
-	name = "lazarus"
-	desc = "Can revive a fallen follower once."
-	icon_state = "lazarus"
-	max_integrity = 100
-
-/obj/structure/divine/construction_holder
-	name = "unfinished structure"
-	desc = "An unfinished divine structure. Requires materials to complete."
-	icon = 'icons/obj/hand_of_god_structures.dmi'
-	icon_state = "construction"
-	density = FALSE
-	max_integrity = 100
-	is_construction_holder = TRUE
-	var/obj/structure/divine/build_type = null
-	var/iron_required = 0
-	var/glass_required = 0
-	var/rods_required = 0
-	var/iron_inserted = 0
-	var/glass_inserted = 0
-	var/rods_inserted = 0
-
-/obj/structure/divine/construction_holder/proc/setup_construction(obj/structure/divine/build_path)
-	build_type = build_path
-	name = "unfinished [initial(build_path.name)]"
-	switch(build_path)
-		if(/obj/structure/divine/convertaltar)
-			rods_required = 25
-			glass_required = 10
-		if(/obj/structure/divine/sacrificealtar)
-			iron_required = 25
-			glass_required = 10
+/atom/movable/screen/hog/PlaceNexus/Click()
+	if(istype(usr, /mob/camera/god))
+		var/mob/camera/god/deity = usr
+		if(deity.god_nexus)
+			deity.forceMove(get_turf(deity.god_nexus))
+			to_chat(deity, span_notice("You return to your nexus."))
 		else
-			iron_required = 10
+			deity.place_nexus()
 
-/obj/structure/divine/construction_holder/attackby(obj/item/I, mob/user, params)
-	if(istype(I, /obj/item/stack/sheet/iron))
-		var/obj/item/stack/sheet/iron/S = I
-		var/needed = iron_required - iron_inserted
-		if(needed <= 0)
-			to_chat(user, span_warning("It doesn't need more iron!"))
-			return
-		var/to_use = min(S.amount, needed)
-		S.use(to_use)
-		iron_inserted += to_use
-		to_chat(user, span_notice("You add [to_use] iron. ([iron_inserted]/[iron
+/atom/movable/screen/hog/GodSpeak
+	icon_state = "God-Speak"
+	name = "Divine Telepathy"
+	desc = "Speak to all your followers."
+
+/atom/movable/screen/hog/GodSpeak/Click()
+	if(istype(usr, /mob/camera/god))
+		var/mob/camera/god/deity = usr
+		deity.god_speak_input()
+
+/atom/movable/screen/hog/BuildStructure
+	icon_state = "Spawn Structure"
+	name = "Spawn Structure"
+	desc = "Begin construction of a divine structure."
+
+/atom/movable/screen/hog/BuildStructure/Click()
+	if(istype(usr, /mob/camera/god))
+		var/mob/camera/god/deity = usr
+		deity.build_structure()
+
+/atom/movable/screen/hog/PlaceTrap
+	icon_state = "Rune-Manifest"
+	name = "Rune Manifest"
+	desc = "Manifest a divine rune trap."
+
+/atom/movable/screen/hog/PlaceTrap/Click()
+	if(istype(usr, /mob/camera/god))
+		var/mob/camera/god/deity = usr
+		deity.place_trap()
+
+/atom/movable/screen/hog/Smite
+	icon_state = "Smite-Nerd"
+	name = "Smite"
+	desc = "Unleash divine wrath upon a non-believer."
+
+/atom/movable/screen/hog/Smite/Click()
+	if(istype(usr, /mob/camera/god))
+		var/mob/camera/god/deity = usr
+		deity.smite_target()
+
+/atom/movable/screen/hog/ConjureEquipment
+	icon_state = "Conkure Equipment"
+	name = "Conjure Equipment"
+	desc = "Grant weapons and armor to a chosen follower."
+
+/atom/movable/screen/hog/ConjureEquipment/Click()
+	if(istype(usr, /mob/camera/god))
+		var/mob/camera/god/deity = usr
+		deity.conjure_equipment()
+
+/atom/movable/screen/hog/ConjureCalamity
+	icon_state = "Conjure Calamity"
+	name = "Conjure Calamity"
+	desc = "Unleash a devastating calamity upon the station."
+
+/atom/movable/screen/hog/ConjureCalamity/Click()
+	if(istype(usr, /mob/camera/god))
+		var/mob/camera/god/deity = usr
+		deity.conjure_calamity()
+
+/atom/movable/screen/hog/ObfuscateStructure
+	icon_state = "obfuscate-structure"
+	name = "Obfuscate Structure"
+	desc = "Hide a structure from non-believers."
+
+/atom/movable/screen/hog/ObfuscateStructure/Click()
+	if(istype(usr, /mob/camera/god))
+		var/mob/camera/god/deity = usr
+		deity.obfuscate_structure()
+
+/atom/movable/screen/hog/AppointProphet
+	icon_state = "appoint-pope"
+	name = "Appoint Prophet"
+	desc = "Promote a loyal follower to become your prophet."
+
+/atom/movable/screen/hog/AppointProphet/Click()
+	if(istype(usr, /mob/camera/god))
+		var/mob/camera/god/deity = usr
+		deity.appoint_prophet()
+
+/datum/hud/proc/hoggod_hud(mob/camera/god/deity)
+	if(!deity)
+		return
+
+	deity_health_display = new /atom/movable/screen()
+	deity_health_display.name = "Nexus Health"
+	deity_health_display.icon = 'icons/obj/hand_of_god_structures.dmi'
+	deity_health_display.icon_state = "deity_nexus"
+	deity_health_display.screen_loc = ui_deityhealth
+	infodisplay += deity_health_display
+
+	deity_power_display = new /atom/movable/screen()
+	deity_power_display.name = "Faith"
+	deity_power_display.icon = 'icons/obj/hand_of_god_structures.dmi'
+	deity_power_display.icon_state = "deity_power"
+	deity_power_display.screen_loc = ui_deitypower
+	infodisplay += deity_power_display
+
+	deity_follower_display = new /atom/movable/screen()
+	deity_follower_display.name = "Followers"
+	deity_follower_display.icon = 'icons/obj/hand_of_god_structures.dmi'
+	deity_follower_display.icon_state = "deity_followers"
+	deity_follower_display.screen_loc = ui_deityfollowers
+	infodisplay += deity_follower_display
+
+	var/atom/movable/screen/hog/using
+
+	using = new /atom/movable/screen/hog/GodSpeak(null, src)
+	using.screen_loc = ui_inventory
+	static_inventory += using
+
+	using = new /atom/movable/screen/hog/PlaceNexus(null, src)
+	using.screen_loc = ui_zonesel
+	static_inventory += using
+
+	using = new /atom/movable/screen/hog/BuildStructure(null, src)
+	using.screen_loc = ui_belt
+	static_inventory += using
+
+	using = new /atom/movable/screen/hog/PlaceTrap(null, src)
+	using.screen_loc = ui_back
+	static_inventory += using
+
+	using = new /atom/movable/screen/hog/Smite(null, src)
+	using.screen_loc = ui_hand_position(1)
+	static_inventory += using
+
+	using = new /atom/movable/screen/hog/ConjureEquipment(null, src)
+	using.screen_loc = ui_hand_position(2)
+	static_inventory += using
+
+	using = new /atom/movable/screen/hog/ConjureCalamity(null, src)
+	using.screen_loc = ui_storage1
+	static_inventory += using
+
+	using = new /atom/movable/screen/hog/ObfuscateStructure(null, src)
+	using.screen_loc = ui_storage2
+	static_inventory += using
+
+	using = new /atom/movable/screen/hog/AppointProphet(null, src)
+	using.screen_loc = "CENTER-4:16,SOUTH:5"
+	static_inventory += using
+
+	if(mymob.client)
+		mymob.client.screen |= list(deity_health_display, deity_power_display, deity_follower_display)
+		mymob.client.screen |= static_inventory
+
+	deity.update_all_huds()
