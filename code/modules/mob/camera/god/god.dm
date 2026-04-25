@@ -29,7 +29,7 @@
 	addtimer(CALLBACK(src, PROC_REF(start_faith_regen)), 30 SECONDS)
 
 /mob/camera/god/Destroy()
-	QDEL_NULL(god_ears)
+	GLOB.dead_mob_list -= src
 	if(god_nexus)
 		QDEL_NULL(god_nexus)
 	structures.Cut()
@@ -482,10 +482,7 @@
 		hud_used.hoggod_hud(src)
 	update_vision()
 	pick_deity_name()
-	god_ears = new /obj/item/radio/headset/ai(src)
-	god_ears.set_frequency(FREQ_COMMON)
-	for(var/freq in GLOB.radio_channels)
-		god_ears.secure_radio_connections[freq] = add_radio(god_ears, freq)
+	GLOB.dead_mob_list += src
 	to_chat(src, span_notice("You are a deity!"))
 	to_chat(src, "You are worshipped by a cult. Use the buttons on your HUD to interact with the world.")
 	to_chat(src, "Left-click a living being to speak through them. Middle-click a follower to jump to them.")
