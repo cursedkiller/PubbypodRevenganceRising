@@ -50,17 +50,58 @@
 		return
 	..()
 
+/mob/camera/god/MiddleClickOn(atom/A)
+	if(isliving(A))
+		var/mob/living/L = A
+		if(IS_HOG_CULTIST(L))
+			var/datum/antagonist/hog_cultist/C = L.mind?.has_antag_datum(/datum/antagonist/hog_cultist)
+			if(C?.cult_team?.team_colour == team_colour)
+				forceMove(get_turf(L))
+				to_chat(src, span_notice("You shift your gaze to [L]."))
+				return
+	..()
+
 /mob/camera/god/proc/update_vision()
 	if(!nexus_required)
+		sight = SEE_TURFS | SEE_MOBS | SEE_OBJS | SEE_SELF
 		see_in_dark = world.view
 		return
-	see_in_dark = 5
-	if(god_nexus)
-		see_in_dark = 20
-	for(var/obj/structure/divine/conduit/C in structures)
-		see_in_dark += 20
+
+	see_in_dark = 3
 	if(alive_followers > 0)
-		see_in_dark = max(see_in_dark, 7)
+		see_in_dark = 5
+
+	var/near_structure = FALSE
+	if(god_nexus && get_dist(src, god_nexus) <= 20)
+		near_structure = TRUE
+	else
+		for(var/obj/structure/divine/conduit/C in structures)
+			if(get_dist(src, C) <= 20)
+				near_structure = TRUE
+				break
+
+	if(near_structure)
+		sight = SEE_TURFS | SEE_MOBS | SEE_OBJS | SEE_SELF
+		see_in_dark = 20
+
+/mob/camera/god/proc/can_place_here(turf/T)
+	if(!nexus_required)
+		return TRUE
+	if(god_nexus && get_dist(T, god_nexus) <= 20)
+		return TRUE
+	for(var/obj/structure/divine/conduit/C in structures)
+		if(get_dist(T, C) <= 20)
+			return TRUE
+	return FALSE
+
+/mob/camera/god/Move(new_loc, direct)
+	if(!nexus_required)
+		loc = new_loc
+		return
+	if(!can_place_here(new_loc))
+		to_chat(src, span_warning("You cannot stray from your domain! Build conduits to expand your reach."))
+		return
+	loc = new_loc
 
 /mob/camera/god/proc/start_death_check()
 	if(QDELETED(src))
@@ -155,6 +196,9 @@
 	if(!god_nexus)
 		to_chat(src, span_warning("You must place your nexus first!"))
 		return
+	if(!can_place_here(get_turf(src)))
+		to_chat(src, span_warning("Your domain hasn't reached this area! Build conduits to expand your reach."))
+		return
 	if(!can_afford(HOG_FAITH_COST_STRUCTURE))
 		return
 	var/list/choices = list(
@@ -195,6 +239,9 @@
 /mob/camera/god/proc/place_trap()
 	if(!god_nexus)
 		to_chat(src, span_warning("You must place your nexus first!"))
+		return
+	if(!can_place_here(get_turf(src)))
+		to_chat(src, span_warning("Your domain hasn't reached this area!"))
 		return
 	if(!can_afford(HOG_FAITH_COST_TRAP))
 		return
@@ -282,6 +329,9 @@
 	if(!god_nexus)
 		to_chat(src, span_warning("You must place your nexus first!"))
 		return
+	if(!can_place_here(get_turf(src)))
+		to_chat(src, span_warning("Your domain hasn't reached this area!"))
+		return
 	if(!can_afford(100))
 		return
 	if(!spend_faith(100))
@@ -303,18 +353,19 @@
 			continue
 		S.alpha = 0
 		S.mouse_opacity = MOUSE_OPACITY_TRANSPARENT
-		S.invisibility = INVISIBILITY_MAXIMUM
 		for(var/mob/M in GLOB.player_list)
 			if(IS_HOG_CULTIST(M))
 				var/datum/antagonist/hog_cultist/C = M.mind?.has_antag_datum(/datum/antagonist/hog_cultist)
 				if(C?.cult_team?.team_colour == team_colour)
+					M.client?.images |= S
 					continue
 			if(IS_HOG_GOD(M))
+				M.client?.images |= S
 				continue
 			if(isobserver(M))
 				continue
 			M.client?.images -= S
-	to_chat(src, span_notice("All your structures vanish from non-believers' sight."))
+	to_chat(src, span_notice("All your structures are now hidden from non-believers."))
 
 /mob/camera/god/proc/appoint_prophet()
 	if(!god_nexus)
@@ -433,6 +484,7 @@
 	pick_deity_name()
 	to_chat(src, span_notice("You are a deity!"))
 	to_chat(src, "You are worshipped by a cult. Use the buttons on your HUD to interact with the world.")
+	to_chat(src, "Left-click a living being to speak through them. Middle-click a follower to jump to them.")
 
 /mob/camera/god/Move(new_loc, direct)
 	loc = new_loc
