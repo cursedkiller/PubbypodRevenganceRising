@@ -29,6 +29,7 @@
 	addtimer(CALLBACK(src, PROC_REF(start_faith_regen)), 30 SECONDS)
 
 /mob/camera/god/Destroy()
+	QDEL_NULL(god_ears)
 	if(god_nexus)
 		QDEL_NULL(god_nexus)
 	structures.Cut()
@@ -56,7 +57,7 @@
 		if(IS_HOG_CULTIST(L))
 			var/datum/antagonist/hog_cultist/C = L.mind?.has_antag_datum(/datum/antagonist/hog_cultist)
 			if(C?.cult_team?.team_colour == team_colour)
-				forceMove(get_turf(L))
+				loc = get_turf(L)
 				to_chat(src, span_notice("You shift your gaze to [L]."))
 				return
 	..()
@@ -96,12 +97,11 @@
 
 /mob/camera/god/Move(new_loc, direct)
 	if(!nexus_required)
-		loc = new_loc
-		return
+		return ..()
 	if(!can_place_here(new_loc))
 		to_chat(src, span_warning("You cannot stray from your domain! Build conduits to expand your reach."))
 		return
-	loc = new_loc
+	return ..()
 
 /mob/camera/god/proc/start_death_check()
 	if(QDELETED(src))
@@ -482,6 +482,10 @@
 		hud_used.hoggod_hud(src)
 	update_vision()
 	pick_deity_name()
+	god_ears = new /obj/item/radio/headset/ai(src)
+	god_ears.set_frequency(FREQ_COMMON)
+	for(var/freq in GLOB.radio_channels)
+		god_ears.secure_radio_connections[freq] = add_radio(god_ears, freq)
 	to_chat(src, span_notice("You are a deity!"))
 	to_chat(src, "You are worshipped by a cult. Use the buttons on your HUD to interact with the world.")
 	to_chat(src, "Left-click a living being to speak through them. Middle-click a follower to jump to them.")
