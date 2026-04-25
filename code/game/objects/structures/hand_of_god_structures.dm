@@ -6,7 +6,7 @@
 	anchored = TRUE
 	max_integrity = 200
 	light_range = 2
-	light_color = LIGHT_COLOR_HOLY
+	light_color = LIGHT_COLOR_WHITE
 	var/mob/camera/god/deity = null
 	var/is_trap = FALSE
 	var/is_construction_holder = FALSE
