@@ -5,7 +5,7 @@
 	icon = 'icons/obj/hand_of_god_structures.dmi'
 	icon_state = "marker-neutral"
 	invisibility = INVISIBILITY_OBSERVER
-	see_in_dark = 6
+	see_in_dark = 5
 	see_invisible = SEE_INVISIBLE_LIVING
 	sight = SEE_TURFS | SEE_MOBS | SEE_OBJS | SEE_SELF
 	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
@@ -159,18 +159,12 @@
 	var/build_path = choices[chosen_name]
 	if(build_path == /obj/structure/divine/defensepylon && !free_pylon_used)
 		free_pylon_used = TRUE
-		if(!spend_faith(HOG_FAITH_COST_STRUCTURE))
-			free_pylon_used = FALSE
-			return
 		var/obj/structure/divine/defensepylon/P = new(get_turf(src))
 		P.assign_deity(src)
 		to_chat(src, span_notice("You manifest a defense pylon! Future pylons will require construction."))
 		return
 	if(build_path == /obj/structure/divine/convertaltar && !free_conversion_altar_used)
 		free_conversion_altar_used = TRUE
-		if(!spend_faith(HOG_FAITH_COST_STRUCTURE))
-			free_conversion_altar_used = FALSE
-			return
 		var/obj/structure/divine/convertaltar/A = new(get_turf(src))
 		A.assign_deity(src)
 		to_chat(src, span_notice("You manifest a conversion altar! Future altars will require construction."))
