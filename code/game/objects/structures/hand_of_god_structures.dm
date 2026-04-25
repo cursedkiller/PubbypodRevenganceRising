@@ -77,17 +77,161 @@
 	icon_state = "forge"
 	max_integrity = 300
 
-/obj/structure/divine/sacrificealtar
-	name = "sacrifice altar"
-	desc = "Used for blood sacrifice to gain gems."
-	icon_state = "sacrificealtar"
-	max_integrity = 250
-
 /obj/structure/divine/convertaltar
 	name = "conversion altar"
-	desc = "Used to convert crew members to your deity."
+	desc = "Used to convert crew members and rival cultists to your deity. Drag a target onto it to begin."
 	icon_state = "convertaltar"
 	max_integrity = 250
+	var/converting = FALSE
+
+/obj/structure/divine/convertaltar/attackby(obj/item/I, mob/user, params)
+	return
+
+/obj/structure/divine/convertaltar/MouseDrop_T(atom/dropped, mob/user)
+	if(!ishuman(dropped) || !ishuman(user))
+		return
+	if(user == dropped)
+		return
+	if(!deity)
+		to_chat(user, span_warning("This altar is not connected to a deity!"))
+		return
+	if(!IS_HOG_CULTIST(user))
+		to_chat(user, span_warning("You don't know how to use this!"))
+		return
+	if(converting)
+		to_chat(user, span_warning("The altar is already in use!"))
+		return
+
+	var/mob/living/carbon/human/target = dropped
+	INVOKE_ASYNC(src, PROC_REF(convert_target), target, user)
+
+/obj/structure/divine/convertaltar/proc/convert_target(mob/living/carbon/human/target, mob/living/carbon/human/user)
+	converting = TRUE
+
+	if(IS_HOG_PROPHET(target))
+		to_chat(user, span_warning("A rival prophet's faith is too strong! They can only be sacrificed."))
+		converting = FALSE
+		return
+
+	if(IS_HOG_CULTIST(target))
+		var/datum/antagonist/hog_cultist/C = target.mind.has_antag_datum(/datum/antagonist/hog_cultist)
+		if(C?.cult_team?.team_colour == deity.team_colour)
+			to_chat(user, span_warning("[target] is already a follower of your deity!"))
+			converting = FALSE
+			return
+
+		user.visible_message(span_warning("[user] begins purging [target]'s faith at the altar..."), span_notice("You begin purging [target]'s faith..."))
+		if(!do_after(user, 15 SECONDS, target))
+			converting = FALSE
+			return
+		target.mind.remove_antag_datum(/datum/antagonist/hog_cultist)
+		target.visible_message(span_warning("[target]'s faith has been stripped away!"), span_userdanger("Your faith has been purged!"))
+
+		user.visible_message(span_warning("[user] begins converting [target] to a new faith..."), span_notice("You begin converting [target] to your deity..."))
+		if(!do_after(user, 10 SECONDS, target))
+			converting = FALSE
+			return
+		target.mind.make_Handofgod_follower(deity.team_colour)
+		target.visible_message(span_warning("[target]'s eyes glow as they embrace a new faith!"), span_danger("<B>You have been converted to the [deity.team_colour] deity!</B>"))
+		to_chat(user, span_notice("Conversion complete!"))
+		converting = FALSE
+		return
+
+	if(HAS_TRAIT(target, TRAIT_MINDSHIELD))
+		to_chat(user, span_warning("[target] is protected by a mindshield!"))
+		converting = FALSE
+		return
+
+	if(target.stat == DEAD)
+		to_chat(user, span_warning("[target] is dead and cannot be converted!"))
+		converting = FALSE
+		return
+
+	user.visible_message(span_warning("[user] begins converting [target] at the altar..."), span_notice("You begin converting [target] to your deity..."))
+	if(!do_after(user, 10 SECONDS, target))
+		converting = FALSE
+		return
+
+	target.mind.make_Handofgod_follower(deity.team_colour)
+	target.visible_message(span_warning("[target]'s eyes glow as they are converted!"), span_danger("<B>You have been converted to the [deity.team_colour] deity!</B>"))
+	to_chat(user, span_notice("Conversion complete!"))
+	converting = FALSE
+
+/obj/structure/divine/sacrificealtar
+	name = "sacrifice altar"
+	desc = "Used to sacrifice beings for gems or faith. Drag a target onto it to begin."
+	icon_state = "sacrificealtar"
+	max_integrity = 250
+	var/sacrificing = FALSE
+
+/obj/structure/divine/sacrificealtar/attackby(obj/item/I, mob/user, params)
+	return
+
+/obj/structure/divine/sacrificealtar/MouseDrop_T(atom/dropped, mob/user)
+	if(!ishuman(dropped) || !ishuman(user))
+		return
+	if(user == dropped)
+		return
+	if(!deity)
+		to_chat(user, span_warning("This altar is not connected to a deity!"))
+		return
+	if(!IS_HOG_CULTIST(user))
+		to_chat(user, span_warning("You don't know how to use this!"))
+		return
+	if(sacrificing)
+		to_chat(user, span_warning("The altar is already in use!"))
+		return
+
+	var/mob/living/carbon/human/target = dropped
+	INVOKE_ASYNC(src, PROC_REF(sacrifice_target), target, user)
+
+/obj/structure/divine/sacrificealtar/proc/sacrifice_target(mob/living/carbon/human/target, mob/living/carbon/human/user)
+	sacrificing = TRUE
+
+	user.visible_message(span_warning("[user] drags [target] onto the sacrifice altar!"), span_danger("You begin sacrificing [target]..."))
+	if(!do_after(user, 8 SECONDS, target))
+		sacrificing = FALSE
+		return
+
+	if(IS_HOG_PROPHET(target))
+		new /obj/item/stack/sheet/greatergem(get_turf(src))
+		target.visible_message(span_warning("[target] bursts into divine flames, collapsing into a husk!"), span_userdanger("Your body is consumed by divine fire!"))
+		target.death()
+		target.adjustFireLoss(200)
+		target.update_body()
+		to_chat(user, span_notice("A greater gem materializes from the rival prophet."))
+		sacrificing = FALSE
+		return
+
+	if(IS_HOG_CULTIST(target))
+		var/datum/antagonist/hog_cultist/C = target.mind.has_antag_datum(/datum/antagonist/hog_cultist)
+		if(C?.cult_team?.team_colour == deity.team_colour)
+			target.visible_message(span_warning("[target]'s body ignites as they give themselves to their deity!"), span_userdanger("You give your life for your deity!"))
+			target.death()
+			target.adjustFireLoss(200)
+			target.update_body()
+			deity.add_faith(50)
+			to_chat(user, span_notice("Sacrifice complete! Your deity gains 50 faith."))
+			to_chat(deity, span_notice("[target] has been sacrificed in your name! You gain 50 faith."))
+			sacrificing = FALSE
+			return
+
+		new /obj/item/stack/sheet/lessergem(get_turf(src))
+		target.visible_message(span_warning("[target] bursts into flames on the altar!"), span_userdanger("You are consumed by divine fire!"))
+		target.death()
+		target.adjustFireLoss(200)
+		target.update_body()
+		to_chat(user, span_notice("A lesser gem materializes from the rival cultist."))
+		sacrificing = FALSE
+		return
+
+	new /obj/item/stack/sheet/lessergem(get_turf(src))
+	target.visible_message(span_warning("[target] bursts into flames on the altar!"), span_userdanger("You are sacrificed!"))
+	target.death()
+	target.adjustFireLoss(200)
+	target.update_body()
+	to_chat(user, span_notice("A lesser gem materializes."))
+	sacrificing = FALSE
 
 /obj/structure/divine/shrine
 	name = "shrine"
@@ -122,51 +266,41 @@
 
 /obj/structure/divine/construction_holder
 	name = "unfinished structure"
-	desc = "An unfinished divine structure. Requires iron, glass, or iron rods to complete."
+	desc = "An unfinished divine structure. Requires materials to complete."
 	icon = 'icons/obj/hand_of_god_structures.dmi'
 	icon_state = "construction"
 	density = FALSE
 	max_integrity = 100
 	is_construction_holder = TRUE
 	var/obj/structure/divine/build_type = null
-	var/materials_required = 10
-	var/materials_inserted = 0
+	var/iron_required = 0
+	var/glass_required = 0
+	var/rods_required = 0
+	var/iron_inserted = 0
+	var/glass_inserted = 0
+	var/rods_inserted = 0
 
 /obj/structure/divine/construction_holder/proc/setup_construction(obj/structure/divine/build_path)
 	build_type = build_path
 	name = "unfinished [initial(build_path.name)]"
+	switch(build_path)
+		if(/obj/structure/divine/convertaltar)
+			rods_required = 25
+			glass_required = 10
+		if(/obj/structure/divine/sacrificealtar)
+			iron_required = 25
+			glass_required = 10
+		else
+			iron_required = 10
 
 /obj/structure/divine/construction_holder/attackby(obj/item/I, mob/user, params)
 	if(istype(I, /obj/item/stack/sheet/iron))
 		var/obj/item/stack/sheet/iron/S = I
-		add_material(S, user)
-		return
-	if(istype(I, /obj/item/stack/sheet/glass))
-		var/obj/item/stack/sheet/glass/G = I
-		add_material(G, user)
-		return
-	if(istype(I, /obj/item/stack/rods))
-		var/obj/item/stack/rods/R = I
-		add_material(R, user)
-		return
-	return ..()
-
-/obj/structure/divine/construction_holder/proc/add_material(obj/item/stack/S, mob/user)
-	var/needed = materials_required - materials_inserted
-	if(needed <= 0)
-		to_chat(user, span_warning("It doesn't need more materials!"))
-		return
-	var/to_use = min(S.amount, needed)
-	S.use(to_use)
-	materials_inserted += to_use
-	to_chat(user, span_notice("You add [to_use] [S.name]. ([materials_inserted]/[materials_required])"))
-	if(materials_inserted >= materials_required)
-		finish_construction()
-
-/obj/structure/divine/construction_holder/proc/finish_construction()
-	if(!build_type)
-		return
-	visible_message(span_notice("[src] transforms into \a [initial(build_type.name)]!"))
-	var/obj/structure/divine/S = new build_type(get_turf(src))
-	S.assign_deity(deity)
-	qdel(src)
+		var/needed = iron_required - iron_inserted
+		if(needed <= 0)
+			to_chat(user, span_warning("It doesn't need more iron!"))
+			return
+		var/to_use = min(S.amount, needed)
+		S.use(to_use)
+		iron_inserted += to_use
+		to_chat(user, span_notice("You add [to_use] iron. ([iron_inserted]/[iron
