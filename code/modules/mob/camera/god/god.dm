@@ -19,6 +19,7 @@
 	var/prophets_sacrificed_in_name = 0
 	var/alive_followers = 0
 	var/free_pylon_used = FALSE
+	var/free_conversion_altar_used = FALSE
 
 /mob/camera/god/Initialize(mapload)
 	. = ..()
@@ -165,6 +166,15 @@
 		var/obj/structure/divine/defensepylon/P = new(get_turf(src))
 		P.assign_deity(src)
 		to_chat(src, span_notice("You manifest a defense pylon! Future pylons will require construction."))
+		return
+	if(build_path == /obj/structure/divine/convertaltar && !free_conversion_altar_used)
+		free_conversion_altar_used = TRUE
+		if(!spend_faith(HOG_FAITH_COST_STRUCTURE))
+			free_conversion_altar_used = FALSE
+			return
+		var/obj/structure/divine/convertaltar/A = new(get_turf(src))
+		A.assign_deity(src)
+		to_chat(src, span_notice("You manifest a conversion altar! Future altars will require construction."))
 		return
 	if(!spend_faith(HOG_FAITH_COST_STRUCTURE))
 		return
