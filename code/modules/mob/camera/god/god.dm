@@ -5,7 +5,7 @@
 	icon = 'icons/obj/hand_of_god_structures.dmi'
 	icon_state = "marker-neutral"
 	invisibility = INVISIBILITY_OBSERVER
-	see_in_dark = 3
+	see_in_dark = 6
 	see_invisible = SEE_INVISIBLE_LIVING
 	sight = SEE_TURFS | SEE_MOBS | SEE_OBJS | SEE_SELF
 	mouse_opacity = MOUSE_OPACITY_TRANSPARENT
