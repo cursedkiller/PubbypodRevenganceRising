@@ -23,6 +23,7 @@
 /mob/camera/god/Initialize(mapload)
 	. = ..()
 	update_icons()
+	update_vision()
 	addtimer(CALLBACK(src, PROC_REF(force_place_nexus)), HOG_NEXUS_FORCE_TIME)
 	addtimer(CALLBACK(src, PROC_REF(start_death_check)), 30 SECONDS)
 	addtimer(CALLBACK(src, PROC_REF(start_faith_regen)), 30 SECONDS)
@@ -50,9 +51,22 @@
 		return
 	..()
 
+/mob/camera/god/proc/update_vision()
+	if(!nexus_required)
+		see_in_dark = world.view
+		return
+	see_in_dark = 5
+	if(god_nexus)
+		see_in_dark = 20
+	for(var/obj/structure/divine/conduit/C in structures)
+		see_in_dark += 20
+	if(alive_followers > 0)
+		see_in_dark = max(see_in_dark, 7)
+
 /mob/camera/god/proc/start_death_check()
 	if(QDELETED(src))
 		return
+	update_vision()
 	refresh_followers()
 	check_death()
 	addtimer(CALLBACK(src, PROC_REF(start_death_check)), 30 SECONDS)
@@ -60,6 +74,7 @@
 /mob/camera/god/proc/start_faith_regen()
 	if(QDELETED(src))
 		return
+	update_vision()
 	regenerate_faith()
 	addtimer(CALLBACK(src, PROC_REF(start_faith_regen)), 30 SECONDS)
 
@@ -125,6 +140,7 @@
 	god_nexus = N
 	nexus_required = TRUE
 	update_nexus_health_hud()
+	update_vision()
 	to_chat(src, span_notice("You have placed your nexus! It will slowly heal over time."))
 
 /mob/camera/god/proc/god_speak_input()
@@ -413,6 +429,7 @@
 	if(hud_used)
 		hud_used.hoggod_hud(src)
 	GLOB.ghost_others += src
+	update_vision()
 	pick_deity_name()
 	to_chat(src, span_notice("You are a deity!"))
 	to_chat(src, "You are worshipped by a cult. Use the buttons on your HUD to interact with the world.")
