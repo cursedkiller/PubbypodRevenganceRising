@@ -52,6 +52,10 @@
 
 /mob/camera/god/proc/update_vision()
 	if(!nexus_required)
+		for(var/mob/camera/god/G in GLOB.mob_list)
+			if(G != src && G.nexus_required)
+				see_in_dark = world.view
+				return
 		see_in_dark = world.view
 		return
 	see_in_dark = 5
@@ -294,25 +298,27 @@
 	if(!god_nexus)
 		to_chat(src, span_warning("You must place your nexus first!"))
 		return
-	if(!can_afford(25))
+	if(!can_afford(50))
 		return
-	var/list/structs = list()
+	if(!spend_faith(50))
+		return
 	for(var/obj/structure/divine/S in structures)
-		if(!istype(S, /obj/structure/divine/nexus))
-			structs += S
-	if(!length(structs))
-		to_chat(src, span_warning("You have no structures to obfuscate!"))
-		return
-	var/obj/structure/divine/target = tgui_input_list(src, "Choose a structure to hide:", "Obfuscate Structure", structs)
-	if(!target)
-		return
-	if(!spend_faith(25))
-		return
-	target.alpha = 50
-	target.name = "mundane structure"
-	target.desc = "Just a regular piece of station equipment."
-	target.density = FALSE
-	to_chat(src, span_notice("You obfuscate [target]. It can be revealed by clicking on it."))
+		if(istype(S, /obj/structure/divine/nexus))
+			continue
+		S.alpha = 0
+		S.mouse_opacity = MOUSE_OPACITY_TRANSPARENT
+		S.invisibility = INVISIBILITY_MAXIMUM
+		for(var/mob/M in GLOB.player_list)
+			if(IS_HOG_CULTIST(M))
+				var/datum/antagonist/hog_cultist/C = M.mind?.has_antag_datum(/datum/antagonist/hog_cultist)
+				if(C?.cult_team?.team_colour == team_colour)
+					continue
+			if(IS_HOG_GOD(M))
+				continue
+			if(isobserver(M))
+				continue
+			M.client?.images -= S
+	to_chat(src, span_notice("All your structures vanish from non-believers' sight."))
 
 /mob/camera/god/proc/appoint_prophet()
 	if(!god_nexus)
