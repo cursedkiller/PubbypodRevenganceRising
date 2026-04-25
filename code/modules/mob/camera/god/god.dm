@@ -29,7 +29,6 @@
 	addtimer(CALLBACK(src, PROC_REF(start_faith_regen)), 30 SECONDS)
 
 /mob/camera/god/Destroy()
-	GLOB.ghost_others -= src
 	if(god_nexus)
 		QDEL_NULL(god_nexus)
 	structures.Cut()
@@ -428,7 +427,6 @@
 	. = ..()
 	if(hud_used)
 		hud_used.hoggod_hud(src)
-	GLOB.ghost_others += src
 	update_vision()
 	pick_deity_name()
 	to_chat(src, span_notice("You are a deity!"))
