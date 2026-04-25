@@ -5,6 +5,8 @@
 	density = TRUE
 	anchored = TRUE
 	max_integrity = 200
+	light_range = 2
+	light_color = LIGHT_COLOR_HOLY
 	var/mob/camera/god/deity = null
 	var/is_trap = FALSE
 	var/is_construction_holder = FALSE
@@ -25,12 +27,18 @@
 	if(!deity)
 		return
 	icon_state = "[initial(icon_state)]-[deity.team_colour]"
+	if(deity.team_colour == HOG_TEAM_RED)
+		light_color = LIGHT_COLOR_RED
+	else
+		light_color = LIGHT_COLOR_BLUE
+	set_light(2)
 
 /obj/structure/divine/nexus
 	name = "nexus"
 	desc = "The anchor of a deity in this realm."
 	icon_state = "nexus"
 	max_integrity = HOG_NEXUS_MAX_INTEGRITY
+	light_range = 4
 
 /obj/structure/divine/nexus/Initialize(mapload)
 	. = ..()
@@ -52,6 +60,16 @@
 		repair_damage(2)
 		if(deity)
 			deity.update_nexus_health_hud()
+
+/obj/structure/divine/nexus/update_icon()
+	if(!deity)
+		return
+	icon_state = "[initial(icon_state)]-[deity.team_colour]"
+	if(deity.team_colour == HOG_TEAM_RED)
+		light_color = LIGHT_COLOR_RED
+	else
+		light_color = LIGHT_COLOR_BLUE
+	set_light(4)
 
 /obj/structure/divine/defensepylon
 	name = "defense pylon"
