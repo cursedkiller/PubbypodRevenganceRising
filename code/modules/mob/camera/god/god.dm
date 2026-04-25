@@ -19,17 +19,20 @@
 	var/alive_followers = 0
 	var/free_pylon_used = FALSE
 	var/free_conversion_altar_used = FALSE
+	var/obj/item/radio/borg/god_ears/internal_radio
 
 /mob/camera/god/Initialize(mapload)
 	. = ..()
 	update_icons()
 	update_vision()
+	internal_radio = new /obj/item/radio/borg/god_ears(src)
 	addtimer(CALLBACK(src, PROC_REF(force_place_nexus)), HOG_NEXUS_FORCE_TIME)
 	addtimer(CALLBACK(src, PROC_REF(start_death_check)), 30 SECONDS)
 	addtimer(CALLBACK(src, PROC_REF(start_faith_regen)), 30 SECONDS)
 
 /mob/camera/god/Destroy()
 	GLOB.dead_mob_list -= src
+	QDEL_NULL(internal_radio)
 	if(god_nexus)
 		QDEL_NULL(god_nexus)
 	structures.Cut()
@@ -67,11 +70,9 @@
 		sight = SEE_TURFS | SEE_MOBS | SEE_OBJS | SEE_SELF
 		see_in_dark = world.view
 		return
-
 	see_in_dark = 3
 	if(alive_followers > 0)
 		see_in_dark = 5
-
 	var/near_structure = FALSE
 	if(god_nexus && get_dist(src, god_nexus) <= 20)
 		near_structure = TRUE
@@ -80,7 +81,6 @@
 			if(get_dist(src, C) <= 20)
 				near_structure = TRUE
 				break
-
 	if(near_structure)
 		sight = SEE_TURFS | SEE_MOBS | SEE_OBJS | SEE_SELF
 		see_in_dark = 20
@@ -97,11 +97,12 @@
 
 /mob/camera/god/Move(new_loc, direct)
 	if(!nexus_required)
-		return ..()
+		loc = new_loc
+		return TRUE
 	if(!can_place_here(new_loc))
-		to_chat(src, span_warning("You cannot stray from your domain! Build conduits to expand your reach."))
-		return
-	return ..()
+		return FALSE
+	loc = new_loc
+	return TRUE
 
 /mob/camera/god/proc/start_death_check()
 	if(QDELETED(src))
@@ -487,8 +488,17 @@
 	to_chat(src, "You are worshipped by a cult. Use the buttons on your HUD to interact with the world.")
 	to_chat(src, "Left-click a living being to speak through them. Middle-click a follower to jump to them.")
 
-/mob/camera/god/Move(new_loc, direct)
-	loc = new_loc
+//Internal Radio for hearing all channels
+/obj/item/radio/borg/god_ears
+	name = "deity internal listener"
+	desc = "if you can see this, call a coder"
+	canhear_range = 0
+	radio_noise = FALSE
+	prison_radio = TRUE
+
+/obj/item/radio/borg/god_ears/Initialize(mapload)
+	. = ..()
+	set_broadcasting(TRUE)
 
 /mob/verb/become_red_god()
 	set name = "Become Red God"
