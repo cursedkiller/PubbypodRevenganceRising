@@ -52,10 +52,6 @@
 
 /mob/camera/god/proc/update_vision()
 	if(!nexus_required)
-		for(var/mob/camera/god/G in GLOB.mob_list)
-			if(G != src && G.nexus_required)
-				see_in_dark = world.view
-				return
 		see_in_dark = world.view
 		return
 	see_in_dark = 5
