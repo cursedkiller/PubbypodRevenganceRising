@@ -43,6 +43,8 @@
 	var/alive_followers = 0
 	var/free_pylon_used = FALSE
 	var/free_conversion_altar_used = FALSE
+	/// Reference to the divine transmission spell
+	var/datum/action/spell/pointed/divine_transmission/transmission_spell = null
 
 /mob/living/simple_animal/god/Initialize(mapload)
 	. = ..()
@@ -59,6 +61,7 @@
 	if(god_nexus)
 		QDEL_NULL(god_nexus)
 	structures.Cut()
+	transmission_spell = null
 	return ..()
 
 /mob/living/simple_animal/god/UnarmedAttack(atom/A, proximity_flag, modifiers)
@@ -190,16 +193,6 @@
 	update_nexus_health_hud()
 	update_vision()
 	to_chat(src, span_notice("You have placed your nexus! It will slowly heal over time."))
-
-/mob/living/simple_animal/god/proc/divine_transmission_input()
-	if(!god_nexus)
-		to_chat(src, span_warning("You must place your nexus first!"))
-		return
-	if(!can_afford(35))
-		return
-	var/datum/action/spell/pointed/divine_transmission/temp_spell = new(src)
-	temp_spell.Grant(src)
-	temp_spell.try_activate_spell()
 
 /mob/living/simple_animal/god/proc/build_structure()
 	if(!god_nexus)
@@ -550,6 +543,11 @@
 	var/obj/item/radio/headset/silicon/ai/god_radio = new(src)
 	god_radio.set_frequency(FREQ_COMMON)
 	god_radio.independent = TRUE
+
+	// Grant the Divine Transmission spell
+	transmission_spell = new(src)
+	transmission_spell.Grant(src)
+
 	to_chat(src, span_notice("You are a deity!"))
 	to_chat(src, "You are worshipped by a cult. Use the buttons on your HUD to interact with the world.")
 	to_chat(src, "Use Divine Transmission to speak through a mortal vessel. Use the Navigate button to jump to your nexus or followers.")
