@@ -2,11 +2,6 @@
 	name = "Divine Transmission"
 	desc = "Speak through a target, forcing them to utter your words aloud."
 	ranged_mousepointer = 'icons/effects/mouse_pointers/cult_target.dmi'
-	background_icon_state = "bg_demon"
-	button_icon_state = "bg_demon_border"
-
-	button_icon = 'icons/hud/actions/actions_cult.dmi'
-	button_icon_state = "abyssal_gaze"
 
 	school = SCHOOL_EVOCATION
 	cooldown_time = 10 SECONDS
