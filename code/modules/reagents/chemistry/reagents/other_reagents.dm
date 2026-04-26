@@ -349,6 +349,8 @@
 			affected_mob.remove_status_effect(/datum/status_effect/jitter)
 			affected_mob.remove_status_effect(/datum/status_effect/speech/stutter)
 			holder?.remove_reagent(type, volume)
+
+/datum/reagent/water/holywater/expose_turf(turf/exposed_turf, reac_volume)
 	. = ..()
 	if(!istype(exposed_turf))
 		return
@@ -356,7 +358,6 @@
 		for(var/obj/effect/rune/rune in exposed_turf)
 			qdel(rune)
 	exposed_turf.Bless()
-
 /datum/reagent/fuel/unholywater //if you somehow managed to extract this from someone, dont splash it on yourself and have a smoke
 	name = "Unholy Water"
 	description = "Something that shouldn't exist on this plane of existence."
