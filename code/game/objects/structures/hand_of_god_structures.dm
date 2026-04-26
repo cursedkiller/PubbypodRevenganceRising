@@ -98,19 +98,13 @@
 	return ..()
 
 /obj/structure/divine/defensepylon/attack_hand(mob/user)
-	if(!IS_HOG_CULTIST(user) && !IS_HOG_GOD(user))
-		to_chat(user, span_warning("You don't know how to use this!"))
+	if(!IS_HOG_GOD(user))
+		to_chat(user, span_warning("Only your deity can control this!"))
 		return
-	if(IS_HOG_GOD(user))
-		var/mob/living/simple_animal/god/G = user
-		if(G.team_colour != deity?.team_colour)
-			to_chat(user, span_warning("This pylon belongs to a different deity!"))
-			return
-	else
-		var/datum/antagonist/hog_cultist/C = user.mind?.has_antag_datum(/datum/antagonist/hog_cultist)
-		if(!C || C.cult_team?.team_colour != deity?.team_colour)
-			to_chat(user, span_warning("This pylon belongs to a different deity!"))
-			return
+	var/mob/living/simple_animal/god/G = user
+	if(G.team_colour != deity?.team_colour)
+		to_chat(user, span_warning("This pylon belongs to a different deity!"))
+		return
 	active = !active
 	attacking = FALSE
 	if(active)
@@ -171,7 +165,7 @@
 	else if(active)
 		icon_state = "[initial(icon_state)]-[deity.team_colour]"
 	else
-		icon_state = initial(icon_state) // neutral/inactive
+		icon_state = initial(icon_state)
 
 /obj/projectile/beam/pylon
 	name = "divine blast"
