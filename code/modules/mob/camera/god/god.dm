@@ -19,19 +19,18 @@
 	var/alive_followers = 0
 	var/free_pylon_used = FALSE
 	var/free_conversion_altar_used = FALSE
-	var/obj/item/radio/borg/god_ears/internal_radio
+	var/obj/item/radio/borg/eminence/internal_radio
 
 /mob/camera/god/Initialize(mapload)
 	. = ..()
 	update_icons()
 	update_vision()
-	internal_radio = new /obj/item/radio/borg/god_ears(src)
+	internal_radio = new(src)
 	addtimer(CALLBACK(src, PROC_REF(force_place_nexus)), HOG_NEXUS_FORCE_TIME)
 	addtimer(CALLBACK(src, PROC_REF(start_death_check)), 30 SECONDS)
 	addtimer(CALLBACK(src, PROC_REF(start_faith_regen)), 30 SECONDS)
 
 /mob/camera/god/Destroy()
-	GLOB.dead_mob_list -= src
 	QDEL_NULL(internal_radio)
 	if(god_nexus)
 		QDEL_NULL(god_nexus)
@@ -335,11 +334,38 @@
 		return
 	if(!can_afford(100))
 		return
+	var/picked_event = tgui_input_list(src, "Choose a calamity to unleash:", "Conjure Calamity", list(
+		"Anomaly: Energetic Flux",
+		"Anomaly: Pyroclastic",
+		"Anomaly: Gravitational",
+		"Anomaly: Bluespace",
+		"Brand Intelligence",
+		"Camera Failure",
+		"Communications Blackout",
+		"Disease Outbreak",
+		"Electrical Storm",
+		"False Alarm",
+		"Grid Check",
+		"Mass Hallucination",
+		"Processor Overload",
+		"Meteor Wave",
+		"Radiation Storm",
+		"Space Vines",
+		"Xenomorph Infestation",
+	))
+	if(!picked_event)
+		return
 	if(!spend_faith(100))
 		return
-	var/turf/T = get_turf(src)
-	explosion(T, 0, 2, 4, 6)
-	to_chat(src, span_userdanger("You unleash divine calamity!"))
+	for(var/datum/round_event_control/E in SSevents.control)
+		if(E.name == picked_event)
+			E.preRunEvent()
+			E.runEvent()
+			SSevents.reschedule()
+			to_chat(src, span_userdanger("You unleash [picked_event] upon the station!"))
+			message_admins("[key_name(src)] has triggered [picked_event] via Conjure Calamity.")
+			return
+	to_chat(src, span_warning("Failed to trigger that event."))
 
 /mob/camera/god/proc/obfuscate_structure()
 	if(!god_nexus)
@@ -352,21 +378,23 @@
 	for(var/obj/structure/divine/S in structures)
 		if(istype(S, /obj/structure/divine/nexus))
 			continue
-		S.invisibility = INVISIBILITY_MAXIMUM
-		S.alpha = 0
+		S.alpha = 15
+		S.mouse_opacity = MOUSE_OPACITY_TRANSPARENT
+		S.name = "mundane structure"
+		S.desc = "Just a regular piece of station equipment."
 		for(var/mob/M in GLOB.player_list)
 			if(!M.client)
 				continue
 			if(IS_HOG_CULTIST(M))
 				var/datum/antagonist/hog_cultist/C = M.mind?.has_antag_datum(/datum/antagonist/hog_cultist)
 				if(C?.cult_team?.team_colour == team_colour)
+					M.client.images |= S
 					continue
 			if(IS_HOG_GOD(M))
-				continue
-			if(isobserver(M))
+				M.client.images |= S
 				continue
 			M.client.images -= S
-	to_chat(src, span_notice("All your structures vanish from non-believers' sight."))
+	to_chat(src, span_notice("Your structures fade into near-invisibility, appearing as mundane objects to non-believers."))
 
 /mob/camera/god/proc/appoint_prophet()
 	if(!god_nexus)
@@ -483,21 +511,16 @@
 		hud_used.hoggod_hud(src)
 	update_vision()
 	pick_deity_name()
-	GLOB.dead_mob_list += src
 	to_chat(src, span_notice("You are a deity!"))
 	to_chat(src, "You are worshipped by a cult. Use the buttons on your HUD to interact with the world.")
 	to_chat(src, "Left-click a living being to speak through them. Middle-click a follower to jump to them.")
 
-//Internal Radio for hearing all channels
-/obj/item/radio/borg/god_ears
+//Internal Radio - same as Eminence for hearing all channels
+/obj/item/radio/borg/eminence/god_ears
 	name = "deity internal listener"
 	desc = "if you can see this, call a coder"
-	canhear_range = 0
-	radio_noise = FALSE
-	prison_radio = TRUE
-	unscrewed = TRUE
 
-/obj/item/radio/borg/god_ears/Initialize(mapload)
+/obj/item/radio/borg/eminence/god_ears/Initialize(mapload)
 	. = ..()
 	set_broadcasting(TRUE)
 
