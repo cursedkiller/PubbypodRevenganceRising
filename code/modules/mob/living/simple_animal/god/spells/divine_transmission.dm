@@ -3,6 +3,10 @@
 	desc = "Speak through a target, forcing them to utter your words aloud."
 	ranged_mousepointer = 'icons/effects/mouse_pointers/cult_target.dmi'
 
+	button_icon = 'icons/obj/hand_of_god_structures.dmi'
+	button_icon_state = "God-Speak"
+	background_icon_state = "God-Speak"
+
 	school = SCHOOL_EVOCATION
 	cooldown_time = 10 SECONDS
 	invocation_type = INVOCATION_NONE
@@ -19,14 +23,25 @@
 /datum/action/spell/pointed/divine_transmission/New(mob/living/simple_animal/god/god_ref)
 	. = ..()
 	our_god = god_ref
+	update_icon_for_team()
 
-/datum/action/spell/pointed/divine_transmission/Grant(mob/grant_to)
-	. = ..()
-	// Hide the auto-generated action button — the HUD button handles activation
-	var/atom/movable/screen/movable/action_button/button = viewers[grant_to]
+/datum/action/spell/pointed/divine_transmission/proc/update_icon_for_team()
+	if(!our_god)
+		return
+	if(our_god.team_colour == HOG_TEAM_BLUE)
+		button_icon_state = "God-Speak-blue"
+		background_icon_state = "God-Speak-blue"
+	else
+		button_icon_state = "God-Speak"
+		background_icon_state = "God-Speak"
+	var/atom/movable/screen/movable/action_button/button = viewers[our_god]
 	if(button)
-		button.alpha = 0
-		button.mouse_opacity = MOUSE_OPACITY_TRANSPARENT
+		button.update_icon()
+
+/datum/action/spell/pointed/divine_transmission/IsAvailable()
+	if(!our_god)
+		return FALSE
+	return ..()
 
 /datum/action/spell/pointed/divine_transmission/is_valid_spell(mob/user, atom/target)
 	if(!isliving(target))
