@@ -113,6 +113,11 @@
 		visible_message(span_notice("[src] powers down."))
 	update_icon()
 
+/obj/structure/divine/defensepylon/attack_ghost(mob/user)
+	if(!IS_HOG_GOD(user))
+		return
+	attack_hand(user)
+
 /obj/structure/divine/defensepylon/process(delta_time)
 	if(!deity || !active || attacking)
 		return
