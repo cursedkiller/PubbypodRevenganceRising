@@ -20,6 +20,14 @@
 	. = ..()
 	our_god = god_ref
 
+/datum/action/spell/pointed/divine_transmission/Grant(mob/grant_to)
+	. = ..()
+	// Hide the auto-generated action button — the HUD button handles activation
+	var/atom/movable/screen/movable/action_button/button = viewers[grant_to]
+	if(button)
+		button.alpha = 0
+		button.mouse_opacity = MOUSE_OPACITY_TRANSPARENT
+
 /datum/action/spell/pointed/divine_transmission/is_valid_spell(mob/user, atom/target)
 	if(!isliving(target))
 		return FALSE
