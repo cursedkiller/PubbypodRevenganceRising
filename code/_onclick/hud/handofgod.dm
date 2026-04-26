@@ -11,41 +11,12 @@
 
 /atom/movable/screen/hog/PlaceNexus
 	icon_state = "nexus-spawn"
-	name = "Nexus"
-	desc = "Place your nexus or jump to it."
-
-/atom/movable/screen/hog/PlaceNexus/Click()
-	if(istype(usr, /mob/living/simple_animal/god))
-		var/mob/camera/god/deity = usr
-		if(deity.god_nexus)
-			deity.forceMove(get_turf(deity.god_nexus))
-			to_chat(deity, span_notice("You return to your nexus."))
-		else
-			deity.place_nexus()
-
-/atom/movable/screen/hog/GodSpeak
-	icon_state = "God-Speak"
-	name = "Divine Telepathy"
-	desc = "Speak to all your followers."
-/atom/movable/screen/hog
-	icon = 'icons/obj/hand_of_god_structures.dmi'
-	mouse_over_pointer = MOUSE_HAND_POINTER
-
-/atom/movable/screen/hog/MouseEntered(location, control, params)
-	. = ..()
-	openToolTip(usr, src, params, title = name, content = desc)
-
-/atom/movable/screen/hog/MouseExited()
-	closeToolTip(usr)
-
-/atom/movable/screen/hog/PlaceNexus
-	icon_state = "nexus-spawn"
 	name = "Navigate"
 	desc = "Jump to your nexus or a follower. Place your nexus if you haven't yet."
 
 /atom/movable/screen/hog/PlaceNexus/Click()
 	if(istype(usr, /mob/living/simple_animal/god))
-		var/mob/camera/god/deity = usr
+		var/mob/living/simple_animal/god/deity = usr
 		if(!deity.god_nexus)
 			deity.place_nexus()
 			return
@@ -57,11 +28,11 @@
 		if(!chosen)
 			return
 		if(chosen == "Nexus")
-			deity.loc = get_turf(deity.god_nexus)
+			deity.forceMove(get_turf(deity.god_nexus))
 			to_chat(deity, span_notice("You return to your nexus."))
 		else
 			var/mob/living/target = choices[chosen]
-			deity.loc = get_turf(target)
+			deity.forceMove(get_turf(target))
 			to_chat(deity, span_notice("You shift your gaze to [target]."))
 
 /atom/movable/screen/hog/GodSpeak
@@ -71,7 +42,7 @@
 
 /atom/movable/screen/hog/GodSpeak/Click()
 	if(istype(usr, /mob/living/simple_animal/god))
-		var/mob/camera/god/deity = usr
+		var/mob/living/simple_animal/god/deity = usr
 		deity.god_speak_input()
 
 /atom/movable/screen/hog/BuildStructure
@@ -81,7 +52,7 @@
 
 /atom/movable/screen/hog/BuildStructure/Click()
 	if(istype(usr, /mob/living/simple_animal/god))
-		var/mob/camera/god/deity = usr
+		var/mob/living/simple_animal/god/deity = usr
 		deity.build_structure()
 
 /atom/movable/screen/hog/PlaceTrap
@@ -91,7 +62,7 @@
 
 /atom/movable/screen/hog/PlaceTrap/Click()
 	if(istype(usr, /mob/living/simple_animal/god))
-		var/mob/camera/god/deity = usr
+		var/mob/living/simple_animal/god/deity = usr
 		deity.place_trap()
 
 /atom/movable/screen/hog/Smite
@@ -101,7 +72,7 @@
 
 /atom/movable/screen/hog/Smite/Click()
 	if(istype(usr, /mob/living/simple_animal/god))
-		var/mob/camera/god/deity = usr
+		var/mob/living/simple_animal/god/deity = usr
 		deity.smite_target()
 
 /atom/movable/screen/hog/ConjureEquipment
@@ -111,7 +82,7 @@
 
 /atom/movable/screen/hog/ConjureEquipment/Click()
 	if(istype(usr, /mob/living/simple_animal/god))
-		var/mob/camera/god/deity = usr
+		var/mob/living/simple_animal/god/deity = usr
 		deity.conjure_equipment()
 
 /atom/movable/screen/hog/ConjureCalamity
@@ -121,7 +92,7 @@
 
 /atom/movable/screen/hog/ConjureCalamity/Click()
 	if(istype(usr, /mob/living/simple_animal/god))
-		var/mob/camera/god/deity = usr
+		var/mob/living/simple_animal/god/deity = usr
 		deity.conjure_calamity()
 
 /atom/movable/screen/hog/ObfuscateStructure
@@ -131,7 +102,7 @@
 
 /atom/movable/screen/hog/ObfuscateStructure/Click()
 	if(istype(usr, /mob/living/simple_animal/god))
-		var/mob/camera/god/deity = usr
+		var/mob/living/simple_animal/god/deity = usr
 		deity.obfuscate_structure()
 
 /atom/movable/screen/hog/AppointProphet
@@ -141,7 +112,7 @@
 
 /atom/movable/screen/hog/AppointProphet/Click()
 	if(istype(usr, /mob/living/simple_animal/god))
-		var/mob/camera/god/deity = usr
+		var/mob/living/simple_animal/god/deity = usr
 		deity.appoint_prophet()
 
 /datum/hud/proc/hoggod_hud(mob/living/simple_animal/god/deity)
