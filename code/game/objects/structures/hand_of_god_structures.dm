@@ -7,11 +7,11 @@
 	max_integrity = 200
 	light_range = 2
 	light_color = null
-	var/mob/camera/god/deity = null
+	var/mob/living/simple_animal/god/deity = null
 	var/is_trap = FALSE
 	var/is_construction_holder = FALSE
 
-/obj/structure/divine/proc/assign_deity(mob/camera/god/G)
+/obj/structure/divine/proc/assign_deity(mob/living/simple_animal/god/G)
 	deity = G
 	if(G)
 		LAZYADD(G.structures, src)
