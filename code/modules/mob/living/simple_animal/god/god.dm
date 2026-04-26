@@ -238,36 +238,35 @@
 		return
 
 	var/list/choices = list()
-	var/list/structure_data = list(
-		"Power Pylon" = list(/obj/structure/divine/powerpylon, "Generates faith for your deity."),
-		"Translocator" = list(/obj/structure/divine/translocator, "Allows followers to teleport between translocators."),
-		"Forge" = list(/obj/structure/divine/forge, "Creates divine equipment for followers."),
-		"Sacrifice Altar" = list(/obj/structure/divine/sacrificealtar, "Sacrifice beings for gems or faith."),
-		"Conversion Altar" = list(/obj/structure/divine/convertaltar, "Convert crew to your deity."),
-		"Shrine" = list(/obj/structure/divine/shrine, "Boosts nearby followers."),
-		"Fountain" = list(/obj/structure/divine/fountain, "Heals nearby followers."),
-		"Conduit" = list(/obj/structure/divine/conduit, "Increases faith generation and extends domain."),
-		"Lazarus" = list(/obj/structure/divine/lazarus, "Revives a fallen follower once."),
-		"Defense Pylon" = list(/obj/structure/divine/defensepylon, "Attacks non-believers automatically."),
+	var/list/name_to_path = list()
+
+	var/list/structure_list = list(
+		"Power Pylon" = /obj/structure/divine/powerpylon,
+		"Translocator" = /obj/structure/divine/translocator,
+		"Forge" = /obj/structure/divine/forge,
+		"Sacrifice Altar" = /obj/structure/divine/sacrificealtar,
+		"Conversion Altar" = /obj/structure/divine/convertaltar,
+		"Shrine" = /obj/structure/divine/shrine,
+		"Fountain" = /obj/structure/divine/fountain,
+		"Conduit" = /obj/structure/divine/conduit,
+		"Lazarus" = /obj/structure/divine/lazarus,
+		"Defense Pylon" = /obj/structure/divine/defensepylon,
 	)
 
-	for(var/name in structure_data)
-		var/list/data = structure_data[name]
-		var/obj/structure/divine/path = data[1]
-		var/desc = data[2]
-		var/image/img = image('icons/obj/hand_of_god_structures.dmi', initial(path.icon_state))
-		choices[name] = list(
-			"name" = name,
-			"desc" = desc,
-			"image" = img,
-			"path" = path,
-		)
+	for(var/name in structure_list)
+		var/build_path = structure_list[name]
+		name_to_path[name] = build_path
+		var/image/building_image = image(icon = 'icons/obj/hand_of_god_structures.dmi', icon_state = initial(build_path.icon_state))
+		var/datum/radial_menu_choice/choice = new()
+		choice.image = building_image
+		choice.info = span_boldnotice("[name]") + "<br>" + span_notice("[initial(build_path.desc)]")
+		choices[name] = choice
 
 	var/chosen_name = show_radial_menu(src, src, choices, radius = 48, tooltips = TRUE)
 	if(!chosen_name)
 		return
 
-	var/build_path = choices[chosen_name]["path"]
+	var/build_path = name_to_path[chosen_name]
 
 	if(build_path == /obj/structure/divine/defensepylon && !free_pylon_used)
 		free_pylon_used = TRUE
