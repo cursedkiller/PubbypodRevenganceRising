@@ -15,7 +15,7 @@
 	desc = "Place your nexus or jump to it."
 
 /atom/movable/screen/hog/PlaceNexus/Click()
-	if(istype(usr, /mob/camera/god))
+	if(istype(usr, /mob/living/simple_animal/god))
 		var/mob/camera/god/deity = usr
 		if(deity.god_nexus)
 			deity.forceMove(get_turf(deity.god_nexus))
@@ -44,7 +44,7 @@
 	desc = "Jump to your nexus or a follower. Place your nexus if you haven't yet."
 
 /atom/movable/screen/hog/PlaceNexus/Click()
-	if(istype(usr, /mob/camera/god))
+	if(istype(usr, /mob/living/simple_animal/god))
 		var/mob/camera/god/deity = usr
 		if(!deity.god_nexus)
 			deity.place_nexus()
@@ -70,7 +70,7 @@
 	desc = "Speak to all your followers."
 
 /atom/movable/screen/hog/GodSpeak/Click()
-	if(istype(usr, /mob/camera/god))
+	if(istype(usr, /mob/living/simple_animal/god))
 		var/mob/camera/god/deity = usr
 		deity.god_speak_input()
 
@@ -80,7 +80,7 @@
 	desc = "Begin construction of a divine structure."
 
 /atom/movable/screen/hog/BuildStructure/Click()
-	if(istype(usr, /mob/camera/god))
+	if(istype(usr, /mob/living/simple_animal/god))
 		var/mob/camera/god/deity = usr
 		deity.build_structure()
 
@@ -90,7 +90,7 @@
 	desc = "Manifest a divine rune trap."
 
 /atom/movable/screen/hog/PlaceTrap/Click()
-	if(istype(usr, /mob/camera/god))
+	if(istype(usr, /mob/living/simple_animal/god))
 		var/mob/camera/god/deity = usr
 		deity.place_trap()
 
@@ -100,7 +100,7 @@
 	desc = "Unleash divine wrath upon a non-believer."
 
 /atom/movable/screen/hog/Smite/Click()
-	if(istype(usr, /mob/camera/god))
+	if(istype(usr, /mob/living/simple_animal/god))
 		var/mob/camera/god/deity = usr
 		deity.smite_target()
 
@@ -110,7 +110,7 @@
 	desc = "Grant weapons and armor to a chosen follower."
 
 /atom/movable/screen/hog/ConjureEquipment/Click()
-	if(istype(usr, /mob/camera/god))
+	if(istype(usr, /mob/living/simple_animal/god))
 		var/mob/camera/god/deity = usr
 		deity.conjure_equipment()
 
@@ -120,7 +120,7 @@
 	desc = "Unleash a devastating calamity upon the station."
 
 /atom/movable/screen/hog/ConjureCalamity/Click()
-	if(istype(usr, /mob/camera/god))
+	if(istype(usr, /mob/living/simple_animal/god))
 		var/mob/camera/god/deity = usr
 		deity.conjure_calamity()
 
@@ -130,7 +130,7 @@
 	desc = "Hide your structures from non-believers."
 
 /atom/movable/screen/hog/ObfuscateStructure/Click()
-	if(istype(usr, /mob/camera/god))
+	if(istype(usr, /mob/living/simple_animal/god))
 		var/mob/camera/god/deity = usr
 		deity.obfuscate_structure()
 
@@ -140,11 +140,11 @@
 	desc = "Promote a loyal follower to become your prophet."
 
 /atom/movable/screen/hog/AppointProphet/Click()
-	if(istype(usr, /mob/camera/god))
+	if(istype(usr, /mob/living/simple_animal/god))
 		var/mob/camera/god/deity = usr
 		deity.appoint_prophet()
 
-/datum/hud/proc/hoggod_hud(mob/camera/god/deity)
+/datum/hud/proc/hoggod_hud(mob/living/simple_animal/god/deity)
 	if(!deity)
 		return
 
