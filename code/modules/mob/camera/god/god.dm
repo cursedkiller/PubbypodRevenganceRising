@@ -19,19 +19,17 @@
 	var/alive_followers = 0
 	var/free_pylon_used = FALSE
 	var/free_conversion_altar_used = FALSE
-	var/obj/item/radio/borg/eminence/internal_radio
 
 /mob/camera/god/Initialize(mapload)
 	. = ..()
 	update_icons()
 	update_vision()
-	internal_radio = new(src)
 	addtimer(CALLBACK(src, PROC_REF(force_place_nexus)), HOG_NEXUS_FORCE_TIME)
 	addtimer(CALLBACK(src, PROC_REF(start_death_check)), 30 SECONDS)
 	addtimer(CALLBACK(src, PROC_REF(start_faith_regen)), 30 SECONDS)
 
 /mob/camera/god/Destroy()
-	QDEL_NULL(internal_radio)
+	GLOB.dead_mob_list -= src
 	if(god_nexus)
 		QDEL_NULL(god_nexus)
 	structures.Cut()
@@ -335,23 +333,24 @@
 	if(!can_afford(100))
 		return
 	var/picked_event = tgui_input_list(src, "Choose a calamity to unleash:", "Conjure Calamity", list(
+		"Obsession Awakening",
+		"Sentient Animals",
+		"Revenant Spawn",
+		"Portal Storm (Cult)",
+		"Fugitives",
+		"Mass Hallucination",
+		"Disease Outbreak",
+		"False Alarm",
+		"Communications Blackout",
+		"Camera Failure",
+		"Electrical Storm",
+		"Grid Check",
 		"Anomaly: Energetic Flux",
 		"Anomaly: Pyroclastic",
 		"Anomaly: Gravitational",
 		"Anomaly: Bluespace",
-		"Brand Intelligence",
-		"Camera Failure",
-		"Communications Blackout",
-		"Disease Outbreak",
-		"Electrical Storm",
-		"False Alarm",
-		"Grid Check",
-		"Mass Hallucination",
-		"Processor Overload",
-		"Meteor Wave",
+		"Anomaly: Vortex",
 		"Radiation Storm",
-		"Space Vines",
-		"Xenomorph Infestation",
 	))
 	if(!picked_event)
 		return
@@ -511,18 +510,10 @@
 		hud_used.hoggod_hud(src)
 	update_vision()
 	pick_deity_name()
+	GLOB.dead_mob_list += src
 	to_chat(src, span_notice("You are a deity!"))
 	to_chat(src, "You are worshipped by a cult. Use the buttons on your HUD to interact with the world.")
 	to_chat(src, "Left-click a living being to speak through them. Middle-click a follower to jump to them.")
-
-//Internal Radio - same as Eminence for hearing all channels
-/obj/item/radio/borg/eminence/god_ears
-	name = "deity internal listener"
-	desc = "if you can see this, call a coder"
-
-/obj/item/radio/borg/eminence/god_ears/Initialize(mapload)
-	. = ..()
-	set_broadcasting(TRUE)
 
 /mob/verb/become_red_god()
 	set name = "Become Red God"
