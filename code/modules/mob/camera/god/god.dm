@@ -352,21 +352,21 @@
 	for(var/obj/structure/divine/S in structures)
 		if(istype(S, /obj/structure/divine/nexus))
 			continue
+		S.invisibility = INVISIBILITY_MAXIMUM
 		S.alpha = 0
-		S.mouse_opacity = MOUSE_OPACITY_TRANSPARENT
 		for(var/mob/M in GLOB.player_list)
+			if(!M.client)
+				continue
 			if(IS_HOG_CULTIST(M))
 				var/datum/antagonist/hog_cultist/C = M.mind?.has_antag_datum(/datum/antagonist/hog_cultist)
 				if(C?.cult_team?.team_colour == team_colour)
-					M.client?.images |= S
 					continue
 			if(IS_HOG_GOD(M))
-				M.client?.images |= S
 				continue
 			if(isobserver(M))
 				continue
-			M.client?.images -= S
-	to_chat(src, span_notice("All your structures are now hidden from non-believers."))
+			M.client.images -= S
+	to_chat(src, span_notice("All your structures vanish from non-believers' sight."))
 
 /mob/camera/god/proc/appoint_prophet()
 	if(!god_nexus)
@@ -495,6 +495,7 @@
 	canhear_range = 0
 	radio_noise = FALSE
 	prison_radio = TRUE
+	unscrewed = TRUE
 
 /obj/item/radio/borg/god_ears/Initialize(mapload)
 	. = ..()
