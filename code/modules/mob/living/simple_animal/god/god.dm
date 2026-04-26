@@ -243,16 +243,16 @@
 
 	var/list/structures = list()
 	var/list/available = list(
-		"Power Pylon" = list(/obj/structure/divine/powerpylon, "powerpylon-red", "Generates faith for your deity.", "10 Iron", FALSE),
-		"Translocator" = list(/obj/structure/divine/translocator, "translocator-red", "Allows followers to teleport.", "10 Iron", FALSE),
-		"Forge" = list(/obj/structure/divine/forge, "forge-red", "Creates divine equipment.", "10 Iron", FALSE),
-		"Sacrifice Altar" = list(/obj/structure/divine/sacrificealtar, "sacrificealtar-red", "Sacrifice beings for gems.", "25 Iron, 10 Glass", FALSE),
-		"Conversion Altar" = list(/obj/structure/divine/convertaltar, "convertaltar-red", "Convert crew to your deity.", "25 Rods, 10 Glass", !free_conversion_altar_used),
-		"Shrine" = list(/obj/structure/divine/shrine, "Shrine-red", "Boosts nearby followers.", "10 Iron", FALSE),
-		"Fountain" = list(/obj/structure/divine/fountain, "fountain-red", "Heals nearby followers.", "10 Iron", FALSE),
-		"Conduit" = list(/obj/structure/divine/conduit, "conduit-red", "Increases faith generation.", "10 Iron", FALSE),
-		"Lazarus" = list(/obj/structure/divine/lazarus, "lazarus-r", "Revives a fallen follower once.", "10 Iron", FALSE),
-		"Defense Pylon" = list(/obj/structure/divine/defensepylon, "defensepylon-red", "Attacks non-believers.", "10 Iron", !free_pylon_used),
+		"Power Pylon" = list(/obj/structure/divine/powerpylon, "powerpylon-red", "Increases your Divine presence and bolsters the strength of your miracles.", "10 Iron", FALSE),
+		"Translocator" = list(/obj/structure/divine/translocator, "translocator-red", "Left-click two portals together to create a stable connection in bluespace between various locations.", "10 Iron", FALSE),
+		"Forge" = list(/obj/structure/divine/forge, "forge-red", "Permit mortals to manipulate ichor to forge weapons of war.", "10 Iron", FALSE),
+		"Sacrifice Altar" = list(/obj/structure/divine/sacrificealtar, "sacrificealtar-red", "Trade blood for faith or rival souls for boons.", "25 Iron, 10 Glass", FALSE),
+		"Conversion Altar" = list(/obj/structure/divine/convertaltar, "convertaltar-red", "Convert the masses to your whims, as long as their minds are willing to learn.", "25 Rods, 10 Glass", !free_conversion_altar_used),
+		"Shrine" = list(/obj/structure/divine/shrine, "Shrine-red", "An idol to inspire and bolster the strength of your following.", "10 Iron", FALSE),
+		"Fountain" = list(/obj/structure/divine/fountain, "fountain-red", "Produces the waters of life and death to cure ailments or deliver them.", "10 Iron", FALSE),
+		"Conduit" = list(/obj/structure/divine/conduit, "conduit-red", "Increases faith generation and the reach of your domain.", "10 Iron", FALSE),
+		"Lazarus" = list(/obj/structure/divine/lazarus, "lazarus-red", "Imbue the dead with your power to resurrect them, or maybe even yourself...", "10 Iron", FALSE),
+		"Defense Pylon" = list(/obj/structure/divine/defensepylon, "defensepylon-red", "Protect against sacrilege. These won't fire upon your faithful but may be turned off with Left Click.", "10 Iron", !free_pylon_used),
 	)
 
 	for(var/name in available)
