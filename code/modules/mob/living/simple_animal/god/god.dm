@@ -32,7 +32,6 @@
 	unique_name = FALSE
 	hud_possible = list(ANTAG_HUD)
 	hud_type = /datum/hud
-	initial_language_holder = /datum/language_holder/lightbringer
 
 	var/team_colour = HOG_TEAM_RED
 	var/faith = HOG_FAITH_STARTING
@@ -47,6 +46,7 @@
 
 /mob/living/simple_animal/god/Initialize(mapload)
 	. = ..()
+	grant_all_languages(source = LANGUAGE_CURATOR)
 	update_icons()
 	update_vision()
 	addtimer(CALLBACK(src, PROC_REF(force_place_nexus)), HOG_NEXUS_FORCE_TIME)
@@ -128,6 +128,13 @@
 	if(!nexus_required)
 		return ..()
 	if(!can_place_here(new_loc))
+		if(client)
+			to_chat(src, span_warning("You cannot stray from your domain! Build conduits to expand your reach."))
+		return FALSE
+	return ..()
+
+/mob/living/simple_animal/god/forceMove(atom/destination)
+	if(nexus_required && !can_place_here(get_turf(destination)))
 		return FALSE
 	return ..()
 
