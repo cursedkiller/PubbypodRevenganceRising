@@ -14,7 +14,7 @@
 	sight = SEE_TURFS | SEE_MOBS | SEE_OBJS | SEE_SELF
 	throwforce = 0
 	see_in_dark = 5
-	lighting_alpha = LIGHTING_PLANE_ALPHA_MOSTLY_INVISIBLE
+	lighting_alpha = LIGHTING_PLANE_ALPHA_VISIBLE
 	unsuitable_atmos_damage = 0
 	damage_coeff = list(BRUTE = 0, BURN = 0, TOX = 0, CLONE = 0, STAMINA = 0, OXY = 0)
 	atmos_requirements = list("min_oxy" = 0, "max_oxy" = 0, "min_tox" = 0, "max_tox" = 0, "min_co2" = 0, "max_co2" = 0, "min_n2" = 0, "max_n2" = 0)
@@ -32,6 +32,7 @@
 	unique_name = FALSE
 	hud_possible = list(ANTAG_HUD)
 	hud_type = /datum/hud
+	initial_language_holder = /datum/language_holder/lightbringer
 
 	var/team_colour = HOG_TEAM_RED
 	var/faith = HOG_FAITH_STARTING
@@ -53,6 +54,8 @@
 	addtimer(CALLBACK(src, PROC_REF(start_faith_regen)), 30 SECONDS)
 
 /mob/living/simple_animal/god/Destroy()
+	for(var/obj/item/radio/R in contents)
+		qdel(R)
 	if(god_nexus)
 		QDEL_NULL(god_nexus)
 	structures.Cut()
@@ -537,24 +540,12 @@
 		hud_used.hoggod_hud(src)
 	update_vision()
 	pick_deity_name()
+	var/obj/item/radio/headset/silicon/ai/god_radio = new(src)
+	god_radio.set_frequency(FREQ_COMMON)
+	god_radio.independent = TRUE
 	to_chat(src, span_notice("You are a deity!"))
 	to_chat(src, "You are worshipped by a cult. Use the buttons on your HUD to interact with the world.")
 	to_chat(src, "Left-click a living being to speak through them. Middle-click a follower to jump to them.")
-
-/mob/living/simple_animal/god/med_hud_set_health()
-	return
-
-/mob/living/simple_animal/god/med_hud_set_status()
-	return
-
-/mob/living/simple_animal/god/update_health_hud()
-	return
-
-/mob/living/simple_animal/god/flash_act(intensity, override_blindness_check, affect_silicon, visual, type)
-	return
-
-/mob/living/simple_animal/god/bullet_act(obj/projectile/Proj)
-	return BULLET_ACT_FORCE_PIERCE
 
 /mob/verb/become_red_god()
 	set name = "Become Red God"
