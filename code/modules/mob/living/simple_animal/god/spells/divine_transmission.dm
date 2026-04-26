@@ -45,7 +45,7 @@
 
 	var/msg = tgui_input_text(our_god, "What message to broadcast through [target]?", "Divine Transmission", "", MAX_MESSAGE_LEN, multiline = TRUE)
 	if(!msg)
-		our_god.add_faith(35) // Refund
+		our_god.add_faith(35)
 		return FALSE
 
 	target.say(msg, forced = "divine thought")
