@@ -236,22 +236,39 @@
 		return
 	if(!can_afford(HOG_FAITH_COST_STRUCTURE))
 		return
-	var/list/choices = list(
-		"Power Pylon" = /obj/structure/divine/powerpylon,
-		"Translocator" = /obj/structure/divine/translocator,
-		"Forge" = /obj/structure/divine/forge,
-		"Sacrifice Altar" = /obj/structure/divine/sacrificealtar,
-		"Conversion Altar" = /obj/structure/divine/convertaltar,
-		"Shrine" = /obj/structure/divine/shrine,
-		"Fountain" = /obj/structure/divine/fountain,
-		"Conduit" = /obj/structure/divine/conduit,
-		"Lazarus" = /obj/structure/divine/lazarus,
-		"Defense Pylon" = /obj/structure/divine/defensepylon,
+
+	var/list/choices = list()
+	var/list/structure_data = list(
+		"Power Pylon" = list(/obj/structure/divine/powerpylon, "Generates faith for your deity."),
+		"Translocator" = list(/obj/structure/divine/translocator, "Allows followers to teleport between translocators."),
+		"Forge" = list(/obj/structure/divine/forge, "Creates divine equipment for followers."),
+		"Sacrifice Altar" = list(/obj/structure/divine/sacrificealtar, "Sacrifice beings for gems or faith."),
+		"Conversion Altar" = list(/obj/structure/divine/convertaltar, "Convert crew to your deity."),
+		"Shrine" = list(/obj/structure/divine/shrine, "Boosts nearby followers."),
+		"Fountain" = list(/obj/structure/divine/fountain, "Heals nearby followers."),
+		"Conduit" = list(/obj/structure/divine/conduit, "Increases faith generation and extends domain."),
+		"Lazarus" = list(/obj/structure/divine/lazarus, "Revives a fallen follower once."),
+		"Defense Pylon" = list(/obj/structure/divine/defensepylon, "Attacks non-believers automatically."),
 	)
-	var/chosen_name = tgui_input_list(src, "Choose a structure:", "Build Structure", choices)
+
+	for(var/name in structure_data)
+		var/list/data = structure_data[name]
+		var/obj/structure/divine/path = data[1]
+		var/desc = data[2]
+		var/image/img = image('icons/obj/hand_of_god_structures.dmi', initial(path.icon_state))
+		choices[name] = list(
+			"name" = name,
+			"desc" = desc,
+			"image" = img,
+			"path" = path,
+		)
+
+	var/chosen_name = show_radial_menu(src, src, choices, radius = 48, tooltips = TRUE)
 	if(!chosen_name)
 		return
-	var/build_path = choices[chosen_name]
+
+	var/build_path = choices[chosen_name]["path"]
+
 	if(build_path == /obj/structure/divine/defensepylon && !free_pylon_used)
 		free_pylon_used = TRUE
 		var/obj/structure/divine/defensepylon/P = new(get_turf(src))
