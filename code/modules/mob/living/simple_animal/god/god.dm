@@ -67,26 +67,6 @@
 /mob/living/simple_animal/god/start_pulling(atom/movable/AM, state, force = move_force, supress_message = FALSE)
 	return FALSE
 
-/mob/living/simple_animal/god/ClickOn(atom/A, params)
-	..()
-
-/mob/living/simple_animal/god/RightClickOn(atom/A)
-	if(isliving(A))
-		transmit_thought(A)
-		return
-	..()
-
-/mob/living/simple_animal/god/MiddleClickOn(atom/A)
-	if(isliving(A))
-		var/mob/living/L = A
-		if(IS_HOG_CULTIST(L))
-			var/datum/antagonist/hog_cultist/C = L.mind?.has_antag_datum(/datum/antagonist/hog_cultist)
-			if(C?.cult_team?.team_colour == team_colour)
-				forceMove(get_turf(L))
-				to_chat(src, span_notice("You shift your gaze to [L]."))
-				return
-	..()
-
 /mob/living/simple_animal/god/proc/update_vision()
 	if(!nexus_required)
 		sight = SEE_TURFS | SEE_MOBS | SEE_OBJS | SEE_SELF
@@ -211,14 +191,15 @@
 	update_vision()
 	to_chat(src, span_notice("You have placed your nexus! It will slowly heal over time."))
 
-/mob/living/simple_animal/god/proc/god_speak_input()
-	if(!alive_followers)
-		to_chat(src, span_warning("You have no followers to speak to!"))
+/mob/living/simple_animal/god/proc/divine_transmission_input()
+	if(!god_nexus)
+		to_chat(src, span_warning("You must place your nexus first!"))
 		return
-	var/msg = tgui_input_text(src, "Message to followers:", "Divine Telepathy", "", MAX_MESSAGE_LEN, multiline = TRUE)
-	if(!msg)
+	if(!can_afford(35))
 		return
-	god_speak(msg)
+	var/datum/action/spell/pointed/divine_transmission/temp_spell = new(src)
+	temp_spell.Grant(src)
+	temp_spell.try_activate_spell()
 
 /mob/living/simple_animal/god/proc/build_structure()
 	if(!god_nexus)
@@ -487,20 +468,6 @@
 	to_chat(target, span_danger("<B>You have been appointed as the prophet of your deity!</B>"))
 	to_chat(src, span_notice("You appoint [target] as your prophet."))
 
-/mob/living/simple_animal/god/proc/transmit_thought(mob/living/target)
-	if(!god_nexus)
-		to_chat(src, span_warning("You must place your nexus first!"))
-		return
-	if(!can_afford(35))
-		return
-	var/msg = tgui_input_text(src, "What message to broadcast through [target]?", "Transmit Thought", "", MAX_MESSAGE_LEN, multiline = TRUE)
-	if(!msg)
-		return
-	if(!spend_faith(35))
-		return
-	target.say(msg, forced = "divine thought")
-	to_chat(src, span_notice("Your voice echoes through [target]."))
-
 /mob/living/simple_animal/god/proc/update_nexus_health_hud()
 	if(!hud_used?.deity_health_display || !god_nexus)
 		return
@@ -585,7 +552,7 @@
 	god_radio.independent = TRUE
 	to_chat(src, span_notice("You are a deity!"))
 	to_chat(src, "You are worshipped by a cult. Use the buttons on your HUD to interact with the world.")
-	to_chat(src, "Right-click a living being to speak through them. Middle-click a follower to jump to them.")
+	to_chat(src, "Use Divine Transmission to speak through a mortal vessel. Use the Navigate button to jump to your nexus or followers.")
 
 /mob/verb/become_red_god()
 	set name = "Become Red God"
