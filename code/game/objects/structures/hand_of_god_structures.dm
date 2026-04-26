@@ -33,6 +33,9 @@
 		light_color = LIGHT_COLOR_BLUE
 	set_light(2)
 
+
+//NEXUS rah!!!//
+
 /obj/structure/divine/nexus
 	name = "nexus"
 	desc = "The anchor of a deity in this realm."
@@ -71,6 +74,10 @@
 		light_color = LIGHT_COLOR_BLUE
 	set_light(4)
 
+
+//Defense Pylon rah!!!//
+
+
 /obj/structure/divine/defensepylon
 	name = "defense pylon"
 	desc = "A defensive structure that attacks non-believers. Click to toggle on/off."
@@ -78,7 +85,7 @@
 	max_integrity = 200
 	var/active = TRUE
 	var/last_shot = 0
-	var/cooldown = 3 SECONDS
+	var/cooldown = 1.5 SECONDS
 	var/attacking = FALSE
 
 /obj/structure/divine/defensepylon/Initialize(mapload)
@@ -90,11 +97,11 @@
 	return ..()
 
 /obj/structure/divine/defensepylon/attack_hand(mob/user)
-	if(!IS_HOG_CULTIST(user))
-		to_chat(user, span_warning("You don't know how to use this!"))
+	if(!IS_HOG_GOD(user))
+		to_chat(user, span_warning("Only your deity can control this!"))
 		return
-	var/datum/antagonist/hog_cultist/C = user.mind?.has_antag_datum(/datum/antagonist/hog_cultist)
-	if(!C || C.cult_team?.team_colour != deity?.team_colour)
+	var/mob/living/simple_animal/god/G = user
+	if(G.team_colour != deity?.team_colour)
 		to_chat(user, span_warning("This pylon belongs to a different deity!"))
 		return
 	active = !active
@@ -116,10 +123,16 @@
 	for(var/mob/living/L in view(5, src))
 		if(L.stat == DEAD)
 			continue
+		if(IS_HOG_GOD(L))
+			continue
+		if(isobserver(L))
+			continue
 		if(IS_HOG_CULTIST(L))
 			var/datum/antagonist/hog_cultist/C = L.mind?.has_antag_datum(/datum/antagonist/hog_cultist)
 			if(C?.cult_team?.team_colour == deity.team_colour)
 				continue
+		if(L.invisibility > SEE_INVISIBLE_LIVING)
+			continue
 		targets += L
 
 	if(!length(targets))
@@ -130,14 +143,14 @@
 	icon_state = "defensepylonattack"
 	last_shot = world.time
 
-	visible_message(span_warning("[src] fires a bolt of energy at [target]!"))
-	var/obj/projectile/beam/laser/pylon_beam = new(get_turf(src))
-	pylon_beam.damage = 10
-	pylon_beam.firer = src
-	pylon_beam.preparePixelProjectile(target, src)
-	pylon_beam.fire()
+	visible_message(span_warning("[src] fires a blast of divine energy at [target]!"))
+	var/obj/projectile/beam/pylon/bolt = new /obj/projectile/beam/pylon(get_turf(src))
+	bolt.firer = src
+	bolt.light_color = deity.team_colour == HOG_TEAM_RED ? LIGHT_COLOR_RED : LIGHT_COLOR_BLUE
+	bolt.preparePixelProjectile(target, src)
+	bolt.fire()
 
-	addtimer(CALLBACK(src, PROC_REF(reset_attack)), 1 SECONDS)
+	addtimer(CALLBACK(src, PROC_REF(reset_attack)), 0.5 SECONDS)
 
 /obj/structure/divine/defensepylon/proc/reset_attack()
 	attacking = FALSE
@@ -147,11 +160,28 @@
 	if(!deity)
 		return
 	if(attacking)
-		icon_state = "defensepylonattack"
+		icon_state = "defensepylonattack-[deity.team_colour]"
 	else if(active)
 		icon_state = "[initial(icon_state)]-[deity.team_colour]"
 	else
 		icon_state = "[initial(icon_state)]-[deity.team_colour]"
+
+/obj/projectile/beam/pylon
+	name = "divine blast"
+	icon_state = "divine_blast"
+	damage = 17
+	damage_type = BURN
+	light_color = LIGHT_COLOR_RED
+	impact_effect_type = /obj/effect/temp_visual/impact_effect/red_laser
+
+/obj/projectile/beam/pylon/on_hit(atom/target, blocked = FALSE)
+	. = ..()
+	if(iscarbon(target))
+		var/mob/living/carbon/C = target
+		C.adjustFireLoss(5)
+
+
+//Power Pylon rah!!!//
 
 /obj/structure/divine/powerpylon
 	name = "power pylon"
