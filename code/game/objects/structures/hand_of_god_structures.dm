@@ -91,27 +91,33 @@
 /obj/structure/divine/defensepylon/Initialize(mapload)
 	. = ..()
 	START_PROCESSING(SSobj, src)
+	update_icon()
 
 /obj/structure/divine/defensepylon/Destroy()
 	STOP_PROCESSING(SSobj, src)
 	return ..()
 
 /obj/structure/divine/defensepylon/attack_hand(mob/user)
-	if(!IS_HOG_GOD(user))
-		to_chat(user, span_warning("Only your deity can control this!"))
+	if(!IS_HOG_CULTIST(user) && !IS_HOG_GOD(user))
+		to_chat(user, span_warning("You don't know how to use this!"))
 		return
-	var/mob/living/simple_animal/god/G = user
-	if(G.team_colour != deity?.team_colour)
-		to_chat(user, span_warning("This pylon belongs to a different deity!"))
-		return
+	if(IS_HOG_GOD(user))
+		var/mob/living/simple_animal/god/G = user
+		if(G.team_colour != deity?.team_colour)
+			to_chat(user, span_warning("This pylon belongs to a different deity!"))
+			return
+	else
+		var/datum/antagonist/hog_cultist/C = user.mind?.has_antag_datum(/datum/antagonist/hog_cultist)
+		if(!C || C.cult_team?.team_colour != deity?.team_colour)
+			to_chat(user, span_warning("This pylon belongs to a different deity!"))
+			return
 	active = !active
+	attacking = FALSE
 	if(active)
-		update_icon()
 		visible_message(span_notice("[src] hums to life."))
 	else
-		icon_state = "[initial(icon_state)]-[deity.team_colour]"
-		attacking = FALSE
 		visible_message(span_notice("[src] powers down."))
+	update_icon()
 
 /obj/structure/divine/defensepylon/process(delta_time)
 	if(!deity || !active || attacking)
@@ -140,8 +146,8 @@
 
 	var/mob/living/target = pick(targets)
 	attacking = TRUE
-	icon_state = "defensepylonattack"
 	last_shot = world.time
+	update_icon()
 
 	visible_message(span_warning("[src] fires a blast of divine energy at [target]!"))
 	var/obj/projectile/beam/pylon/bolt = new /obj/projectile/beam/pylon(get_turf(src))
@@ -158,13 +164,14 @@
 
 /obj/structure/divine/defensepylon/update_icon()
 	if(!deity)
+		icon_state = "defensepylon"
 		return
 	if(attacking)
 		icon_state = "defensepylonattack-[deity.team_colour]"
 	else if(active)
 		icon_state = "[initial(icon_state)]-[deity.team_colour]"
 	else
-		icon_state = "[initial(icon_state)]-[deity.team_colour]"
+		icon_state = initial(icon_state) // neutral/inactive
 
 /obj/projectile/beam/pylon
 	name = "divine blast"
@@ -179,7 +186,6 @@
 	if(iscarbon(target))
 		var/mob/living/carbon/C = target
 		C.adjustFireLoss(5)
-
 
 //Power Pylon rah!!!//
 
