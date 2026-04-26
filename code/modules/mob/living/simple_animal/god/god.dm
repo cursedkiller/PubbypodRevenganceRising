@@ -234,8 +234,13 @@
 	if(!can_place_here(get_turf(src)))
 		to_chat(src, span_warning("Your domain hasn't reached this area! Build conduits to expand your reach."))
 		return
-	var/datum/tgui/deity_structures/tgui = new(src)
-	tgui.ui_interact(src)
+	ui_interact(src)
+
+/mob/living/simple_animal/god/ui_interact(mob/user, datum/tgui/ui)
+	ui = SStgui.try_update_ui(user, src, ui)
+	if(!ui)
+		ui = new(user, src, "DeityStructures", "Divine Structures")
+		ui.open()
 
 /mob/living/simple_animal/god/proc/place_trap()
 	if(!god_nexus)
