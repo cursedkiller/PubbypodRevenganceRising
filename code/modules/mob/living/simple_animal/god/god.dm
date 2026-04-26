@@ -254,7 +254,7 @@
 	)
 
 	for(var/name in structure_list)
-		var/build_path = structure_list[name]
+		var/obj/structure/divine/build_path = structure_list[name]
 		name_to_path[name] = build_path
 		var/image/building_image = image(icon = 'icons/obj/hand_of_god_structures.dmi', icon_state = initial(build_path.icon_state))
 		var/datum/radial_menu_choice/choice = new()
@@ -266,7 +266,7 @@
 	if(!chosen_name)
 		return
 
-	var/build_path = name_to_path[chosen_name]
+	var/obj/structure/divine/build_path = name_to_path[chosen_name]
 
 	if(build_path == /obj/structure/divine/defensepylon && !free_pylon_used)
 		free_pylon_used = TRUE
