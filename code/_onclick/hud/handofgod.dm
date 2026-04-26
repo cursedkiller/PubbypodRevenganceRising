@@ -38,12 +38,17 @@
 /atom/movable/screen/hog/GodSpeak
 	icon_state = "God-Speak"
 	name = "Divine Transmission"
-	desc = "Speak through a target, making them say your words aloud."
+	desc = "Speak through a target, making them say your words aloud. Click again to cancel."
 
 /atom/movable/screen/hog/GodSpeak/Click()
 	if(istype(usr, /mob/living/simple_animal/god))
 		var/mob/living/simple_animal/god/deity = usr
-		if(deity.transmission_spell)
+		if(!deity.transmission_spell)
+			return
+		// Toggle: if already targeting, cancel; otherwise start targeting
+		if(deity.transmission_spell.active)
+			deity.transmission_spell.unset_click_ability(deity)
+		else
 			deity.transmission_spell.set_click_ability(deity)
 
 /atom/movable/screen/hog/BuildStructure
