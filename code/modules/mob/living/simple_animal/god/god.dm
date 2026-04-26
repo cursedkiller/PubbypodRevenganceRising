@@ -19,27 +19,6 @@
 	damage_coeff = list(BRUTE = 0, BURN = 0, TOX = 0, CLONE = 0, STAMINA = 0, OXY = 0)
 	atmos_requirements = list("min_oxy" = 0, "max_oxy" = 0, "min_tox" = 0, "max_tox" = 0, "min_co2" = 0, "max_co2" = 0, "min_n2" = 0, "max_n2" = 0)
 	minbodytemp = 0
-	maxbodytemp = INFINITY/mob/living/simple_animal/god
-	name = "deity"
-	real_name = "deity"
-	desc = "A divine being watching over their followers."
-	icon = 'icons/obj/hand_of_god_structures.dmi'
-	icon_state = "marker-neutral"
-	mob_biotypes = MOB_SPIRIT
-	incorporeal_move = INCORPOREAL_MOVE_EMINENCE
-	invisibility = INVISIBILITY_OBSERVER
-	health = INFINITY
-	maxHealth = INFINITY
-	plane = GHOST_PLANE
-	healable = FALSE
-	sight = SEE_TURFS | SEE_MOBS | SEE_OBJS | SEE_SELF
-	throwforce = 0
-	see_in_dark = 5
-	lighting_alpha = LIGHTING_PLANE_ALPHA_VISIBLE
-	unsuitable_atmos_damage = 0
-	damage_coeff = list(BRUTE = 0, BURN = 0, TOX = 0, CLONE = 0, STAMINA = 0, OXY = 0)
-	atmos_requirements = list("min_oxy" = 0, "max_oxy" = 0, "min_tox" = 0, "max_tox" = 0, "min_co2" = 0, "max_co2" = 0, "min_n2" = 0, "max_n2" = 0)
-	minbodytemp = 0
 	maxbodytemp = INFINITY
 	status_flags = 0
 	wander = FALSE
@@ -89,16 +68,9 @@
 	return FALSE
 
 /mob/living/simple_animal/god/ClickOn(atom/A, params)
-	var/list/modifiers = params2list(params)
-	if(LAZYACCESS(modifiers, SHIFT_CLICK))
-		ShiftClickOn(A)
-		return
-	if(LAZYACCESS(modifiers, CTRL_CLICK))
-		CtrlClickOn(A)
-		return
-	if(LAZYACCESS(modifiers, ALT_CLICK))
-		AltClickOn(A)
-		return
+	..()
+
+/mob/living/simple_animal/god/RightClickOn(atom/A)
 	if(isliving(A))
 		transmit_thought(A)
 		return
@@ -255,8 +227,6 @@
 	if(!can_place_here(get_turf(src)))
 		to_chat(src, span_warning("Your domain hasn't reached this area! Build conduits to expand your reach."))
 		return
-	if(!can_afford(HOG_FAITH_COST_STRUCTURE))
-		return
 	ui_interact(src)
 
 /mob/living/simple_animal/god/ui_interact(mob/user, datum/tgui/ui)
@@ -273,16 +243,16 @@
 
 	var/list/structures = list()
 	var/list/available = list(
-		"Power Pylon" = list(/obj/structure/divine/powerpylon, "powerpylon-red", "Generates faith for your deity.", "10 Iron"),
-		"Translocator" = list(/obj/structure/divine/translocator, "translocator-red", "Allows followers to teleport between translocators.", "10 Iron"),
-		"Forge" = list(/obj/structure/divine/forge, "forge-red", "Creates divine equipment for followers.", "10 Iron"),
-		"Sacrifice Altar" = list(/obj/structure/divine/sacrificealtar, "sacrificealtar-red", "Sacrifice beings for gems or faith.", "25 Iron, 10 Glass"),
-		"Conversion Altar" = list(/obj/structure/divine/convertaltar, "convertaltar-red", "Convert crew to your deity.", "25 Rods, 10 Glass"),
-		"Shrine" = list(/obj/structure/divine/shrine, "Shrine-red", "Boosts nearby followers.", "10 Iron"),
-		"Fountain" = list(/obj/structure/divine/fountain, "fountain-red", "Heals nearby followers.", "10 Iron"),
-		"Conduit" = list(/obj/structure/divine/conduit, "conduit-red", "Increases faith generation and extends domain.", "10 Iron"),
-		"Lazarus" = list(/obj/structure/divine/lazarus, "lazarus-r", "Revives a fallen follower once.", "10 Iron"),
-		"Defense Pylon" = list(/obj/structure/divine/defensepylon, "defensepylon-red", "Attacks non-believers automatically.", "10 Iron"),
+		"Power Pylon" = list(/obj/structure/divine/powerpylon, "powerpylon-red", "Generates faith for your deity.", "10 Iron", FALSE),
+		"Translocator" = list(/obj/structure/divine/translocator, "translocator-red", "Allows followers to teleport.", "10 Iron", FALSE),
+		"Forge" = list(/obj/structure/divine/forge, "forge-red", "Creates divine equipment.", "10 Iron", FALSE),
+		"Sacrifice Altar" = list(/obj/structure/divine/sacrificealtar, "sacrificealtar-red", "Sacrifice beings for gems.", "25 Iron, 10 Glass", FALSE),
+		"Conversion Altar" = list(/obj/structure/divine/convertaltar, "convertaltar-red", "Convert crew to your deity.", "25 Rods, 10 Glass", !free_conversion_altar_used),
+		"Shrine" = list(/obj/structure/divine/shrine, "Shrine-red", "Boosts nearby followers.", "10 Iron", FALSE),
+		"Fountain" = list(/obj/structure/divine/fountain, "fountain-red", "Heals nearby followers.", "10 Iron", FALSE),
+		"Conduit" = list(/obj/structure/divine/conduit, "conduit-red", "Increases faith generation.", "10 Iron", FALSE),
+		"Lazarus" = list(/obj/structure/divine/lazarus, "lazarus-r", "Revives a fallen follower once.", "10 Iron", FALSE),
+		"Defense Pylon" = list(/obj/structure/divine/defensepylon, "defensepylon-red", "Attacks non-believers.", "10 Iron", !free_pylon_used),
 	)
 
 	for(var/name in available)
@@ -290,10 +260,12 @@
 		structures += list(list(
 			"name" = name,
 			"path" = "[info[1]]",
-			"icon" = info[2],
+			"icon" = "icons/obj/hand_of_god_structures.dmi",
+			"icon_state" = info[2],
 			"desc" = info[3],
 			"cost" = HOG_FAITH_COST_STRUCTURE,
 			"materials" = info[4],
+			"free" = info[5],
 		))
 
 	data["structures"] = structures
@@ -613,7 +585,7 @@
 	god_radio.independent = TRUE
 	to_chat(src, span_notice("You are a deity!"))
 	to_chat(src, "You are worshipped by a cult. Use the buttons on your HUD to interact with the world.")
-	to_chat(src, "Left-click a living being to speak through them. Middle-click a follower to jump to them.")
+	to_chat(src, "Right-click a living being to speak through them. Middle-click a follower to jump to them.")
 
 /mob/verb/become_red_god()
 	set name = "Become Red God"
