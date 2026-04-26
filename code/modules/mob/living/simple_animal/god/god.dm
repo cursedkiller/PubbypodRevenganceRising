@@ -31,7 +31,7 @@
 	speed = 1
 	unique_name = FALSE
 	hud_possible = list(ANTAG_HUD)
-	hud_type = /datum/hud/god
+	hud_type = /datum/hud
 
 	var/team_colour = HOG_TEAM_RED
 	var/faith = HOG_FAITH_STARTING
