@@ -306,7 +306,7 @@
 	var/obj/structure/divine/construction_holder/CH = new(get_turf(src))
 	CH.assign_deity(src)
 	CH.setup_construction(build_path)
-	CH.visible_message(span_notice("A transparent, unfinished [initial(build_path.name)] appears!"))
+	CH.visible_message(span_notice("A transparent, unfinished [CH] appears!"))
 	. = TRUE
 
 /mob/living/simple_animal/god/proc/place_trap()
