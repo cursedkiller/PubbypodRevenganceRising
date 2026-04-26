@@ -35,4 +35,4 @@
 #define COMSIG_HOG_FOLLOWER_LOST "comsig_hog_follower_lost"
 #define COMSIG_HOG_NEXUS_DESTROYED "comsig_hog_nexus_destroyed"
 #define COMSIG_HOG_DEITY_DEATH "comsig_hog_deity_death"
-#define IS_HOG_GOD(M) (istype(M, /mob/camera/god))
+#define IS_HOG_GOD(M) (istype(M, /mob/living/simple_animal/god))
