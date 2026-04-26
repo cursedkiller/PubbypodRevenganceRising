@@ -241,25 +241,28 @@
 	var/list/name_to_path = list()
 
 	var/list/structure_list = list(
-		"Power Pylon" = /obj/structure/divine/powerpylon,
-		"Translocator" = /obj/structure/divine/translocator,
-		"Forge" = /obj/structure/divine/forge,
-		"Sacrifice Altar" = /obj/structure/divine/sacrificealtar,
-		"Conversion Altar" = /obj/structure/divine/convertaltar,
-		"Shrine" = /obj/structure/divine/shrine,
-		"Fountain" = /obj/structure/divine/fountain,
-		"Conduit" = /obj/structure/divine/conduit,
-		"Lazarus" = /obj/structure/divine/lazarus,
-		"Defense Pylon" = /obj/structure/divine/defensepylon,
+		"Power Pylon" = list(/obj/structure/divine/powerpylon, "powerpylon-red", "Generates faith for your deity."),
+		"Translocator" = list(/obj/structure/divine/translocator, "translocator-red", "Allows followers to teleport between translocators."),
+		"Forge" = list(/obj/structure/divine/forge, "forge-red", "Creates divine equipment for followers."),
+		"Sacrifice Altar" = list(/obj/structure/divine/sacrificealtar, "sacrificealtar-red", "Sacrifice beings for gems or faith."),
+		"Conversion Altar" = list(/obj/structure/divine/convertaltar, "convertaltar-red", "Convert crew to your deity."),
+		"Shrine" = list(/obj/structure/divine/shrine, "Shrine-red", "Boosts nearby followers."),
+		"Fountain" = list(/obj/structure/divine/fountain, "fountain-red", "Heals nearby followers."),
+		"Conduit" = list(/obj/structure/divine/conduit, "conduit-red", "Increases faith generation and extends domain."),
+		"Lazarus" = list(/obj/structure/divine/lazarus, "lazarus-r", "Revives a fallen follower once."),
+		"Defense Pylon" = list(/obj/structure/divine/defensepylon, "defensepylon-red", "Attacks non-believers automatically."),
 	)
 
 	for(var/name in structure_list)
-		var/obj/structure/divine/build_path = structure_list[name]
+		var/list/data = structure_list[name]
+		var/obj/structure/divine/build_path = data[1]
+		var/icon_name = data[2]
+		var/desc_text = data[3]
 		name_to_path[name] = build_path
-		var/image/building_image = image(icon = 'icons/obj/hand_of_god_structures.dmi', icon_state = initial(build_path.icon_state))
+		var/image/building_image = image(icon = 'icons/obj/hand_of_god_structures.dmi', icon_state = icon_name)
 		var/datum/radial_menu_choice/choice = new()
 		choice.image = building_image
-		choice.info = span_boldnotice("[name]") + "<br>" + span_notice("[initial(build_path.desc)]")
+		choice.info = span_boldnotice("[name]") + "<br>" + span_notice("[desc_text]")
 		choices[name] = choice
 
 	var/chosen_name = show_radial_menu(src, src, choices, radius = 48, tooltips = TRUE)
