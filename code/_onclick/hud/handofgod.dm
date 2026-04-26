@@ -37,13 +37,13 @@
 
 /atom/movable/screen/hog/GodSpeak
 	icon_state = "God-Speak"
-	name = "Divine Telepathy"
-	desc = "Speak to all your followers."
+	name = "Divine Transmission"
+	desc = "Speak through a target, making them say your words aloud."
 
 /atom/movable/screen/hog/GodSpeak/Click()
 	if(istype(usr, /mob/living/simple_animal/god))
 		var/mob/living/simple_animal/god/deity = usr
-		deity.god_speak_input()
+		deity.divine_transmission_input()
 
 /atom/movable/screen/hog/BuildStructure
 	icon_state = "Spawn Structure"
