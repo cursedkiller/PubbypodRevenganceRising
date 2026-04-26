@@ -27,6 +27,47 @@
 	icon_state = "God-Speak"
 	name = "Divine Telepathy"
 	desc = "Speak to all your followers."
+/atom/movable/screen/hog
+	icon = 'icons/obj/hand_of_god_structures.dmi'
+	mouse_over_pointer = MOUSE_HAND_POINTER
+
+/atom/movable/screen/hog/MouseEntered(location, control, params)
+	. = ..()
+	openToolTip(usr, src, params, title = name, content = desc)
+
+/atom/movable/screen/hog/MouseExited()
+	closeToolTip(usr)
+
+/atom/movable/screen/hog/PlaceNexus
+	icon_state = "nexus-spawn"
+	name = "Navigate"
+	desc = "Jump to your nexus or a follower. Place your nexus if you haven't yet."
+
+/atom/movable/screen/hog/PlaceNexus/Click()
+	if(istype(usr, /mob/camera/god))
+		var/mob/camera/god/deity = usr
+		if(!deity.god_nexus)
+			deity.place_nexus()
+			return
+		var/list/choices = list("Nexus" = "nexus")
+		for(var/datum/mind/M in deity.get_my_followers())
+			if(M.current && M.current.stat != DEAD)
+				choices[M.current.name] = M.current
+		var/chosen = tgui_input_list(deity, "Jump to:", "Navigate", choices)
+		if(!chosen)
+			return
+		if(chosen == "Nexus")
+			deity.loc = get_turf(deity.god_nexus)
+			to_chat(deity, span_notice("You return to your nexus."))
+		else
+			var/mob/living/target = choices[chosen]
+			deity.loc = get_turf(target)
+			to_chat(deity, span_notice("You shift your gaze to [target]."))
+
+/atom/movable/screen/hog/GodSpeak
+	icon_state = "God-Speak"
+	name = "Divine Telepathy"
+	desc = "Speak to all your followers."
 
 /atom/movable/screen/hog/GodSpeak/Click()
 	if(istype(usr, /mob/camera/god))
@@ -64,7 +105,7 @@
 		deity.smite_target()
 
 /atom/movable/screen/hog/ConjureEquipment
-	icon_state = "Conkure Equipment"
+	icon_state = "Conjure Equipment"
 	name = "Conjure Equipment"
 	desc = "Grant weapons and armor to a chosen follower."
 
@@ -86,7 +127,7 @@
 /atom/movable/screen/hog/ObfuscateStructure
 	icon_state = "obfuscate-structure"
 	name = "Obfuscate Structure"
-	desc = "Hide a structure from non-believers."
+	desc = "Hide your structures from non-believers."
 
 /atom/movable/screen/hog/ObfuscateStructure/Click()
 	if(istype(usr, /mob/camera/god))
