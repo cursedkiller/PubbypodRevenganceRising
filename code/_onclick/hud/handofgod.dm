@@ -43,7 +43,8 @@
 /atom/movable/screen/hog/GodSpeak/Click()
 	if(istype(usr, /mob/living/simple_animal/god))
 		var/mob/living/simple_animal/god/deity = usr
-		deity.divine_transmission_input()
+		if(deity.transmission_spell)
+			deity.transmission_spell.set_click_ability(deity)
 
 /atom/movable/screen/hog/BuildStructure
 	icon_state = "Spawn Structure"
