@@ -544,9 +544,8 @@
 	god_radio.set_frequency(FREQ_COMMON)
 	god_radio.independent = TRUE
 
-	// Grant the Divine Transmission spell
+	// Set up the Divine Transmission spell (HUD button handles activation)
 	transmission_spell = new(src)
-	transmission_spell.Grant(src)
 
 	to_chat(src, span_notice("You are a deity!"))
 	to_chat(src, "You are worshipped by a cult. Use the buttons on your HUD to interact with the world.")
