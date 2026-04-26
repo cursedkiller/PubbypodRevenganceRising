@@ -62,6 +62,27 @@
 		QDEL_NULL(god_nexus)
 	structures.Cut()
 	transmission_spell = null
+	REMOVE_TRAIT(src, TRAIT_SPEECH_BOOSTER, TRAIT_HOG)
+	return ..()
+
+/mob/living/simple_animal/god/ClickOn(atom/A, params)
+	// Handle defense pylon toggling directly since we're on the ghost plane
+	if(istype(A, /obj/structure/divine/defensepylon))
+		var/obj/structure/divine/defensepylon/P = A
+		if(!P.deity)
+			to_chat(src, span_warning("This pylon is not connected to a deity!"))
+			return
+		if(team_colour != P.deity.team_colour)
+			to_chat(src, span_warning("This pylon belongs to a different deity!"))
+			return
+		P.active = !P.active
+		P.attacking = FALSE
+		if(P.active)
+			P.visible_message(span_notice("[P] hums to life."))
+		else
+			P.visible_message(span_notice("[P] powers down."))
+		P.update_icon()
+		return
 	return ..()
 
 /mob/living/simple_animal/god/UnarmedAttack(atom/A, proximity_flag, modifiers)
@@ -218,7 +239,7 @@
 	var/list/structures = list()
 	var/list/available = list(
 		"Power Pylon" = list(/obj/structure/divine/powerpylon, "powerpylon-red", "Increases your Divine presence and bolsters the strength of your miracles.", "10 Iron", FALSE),
-		"Translocator" = list(/obj/structure/divine/translocator, "translocator-red", "Left-click two portals together to create a stable connection in bluespace between various locations.", "10 Iron", FALSE),
+		"Translocator" = list(/obj/structure/divine/translocator, "translocator-red", "Link portals together to create a gateway between locations.", "10 Iron", FALSE),
 		"Forge" = list(/obj/structure/divine/forge, "forge-red", "Permit mortals to manipulate ichor to forge weapons of war.", "10 Iron", FALSE),
 		"Sacrifice Altar" = list(/obj/structure/divine/sacrificealtar, "sacrificealtar-red", "Trade blood for faith or rival souls for boons.", "25 Iron, 10 Glass", FALSE),
 		"Conversion Altar" = list(/obj/structure/divine/convertaltar, "convertaltar-red", "Convert the masses to your whims, as long as their minds are willing to learn.", "25 Rods, 10 Glass", !free_conversion_altar_used),
@@ -226,7 +247,7 @@
 		"Fountain" = list(/obj/structure/divine/fountain, "fountain-red", "Produces the waters of life and death to cure ailments or deliver them.", "10 Iron", FALSE),
 		"Conduit" = list(/obj/structure/divine/conduit, "conduit-red", "Increases faith generation and the reach of your domain.", "10 Iron", FALSE),
 		"Lazarus" = list(/obj/structure/divine/lazarus, "lazarus-red", "Imbue the dead with your power to resurrect them, or maybe even yourself...", "10 Iron", FALSE),
-		"Defense Pylon" = list(/obj/structure/divine/defensepylon, "defensepylon-red", "Protect against sacrilege. These won't fire upon your faithful but may be turned off with Left Click.", "10 Iron", !free_pylon_used),
+		"Defense Pylon" = list(/obj/structure/divine/defensepylon, "defensepylon-red", "Automatically fires upon non-believers. Toggle on/off with Left Click.", "10 Iron", !free_pylon_used),
 	)
 
 	for(var/name in available)
@@ -539,13 +560,22 @@
 	if(hud_used)
 		hud_used.hoggod_hud(src)
 	update_vision()
-	pick_deity_name()
-	var/obj/item/radio/headset/silicon/ai/god_radio = new(src)
+
+	// Only ask for a name on first login, not relogs
+	if(name == initial(name) || name == "deity")
+		pick_deity_name()
+
+	// Give debug-level radio access (all channels including syndicate and centcom)
+	var/obj/item/radio/headset/headset_cent/debug/god_radio = new(src)
 	god_radio.set_frequency(FREQ_COMMON)
-	god_radio.independent = TRUE
+	god_radio.command = TRUE
+
+	// Make the god's voice naturally loud (loudspeaker effect)
+	ADD_TRAIT(src, TRAIT_SPEECH_BOOSTER, TRAIT_HOG)
 
 	// Set up the Divine Transmission spell (HUD button handles activation)
-	transmission_spell = new(src)
+	if(!transmission_spell)
+		transmission_spell = new(src)
 
 	to_chat(src, span_notice("You are a deity!"))
 	to_chat(src, "You are worshipped by a cult. Use the buttons on your HUD to interact with the world.")
