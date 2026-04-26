@@ -73,9 +73,85 @@
 
 /obj/structure/divine/defensepylon
 	name = "defense pylon"
-	desc = "A defensive structure that attacks non-believers."
+	desc = "A defensive structure that attacks non-believers. Click to toggle on/off."
 	icon_state = "defensepylon"
 	max_integrity = 200
+	var/active = TRUE
+	var/last_shot = 0
+	var/cooldown = 3 SECONDS
+	var/attacking = FALSE
+
+/obj/structure/divine/defensepylon/Initialize(mapload)
+	. = ..()
+	START_PROCESSING(SSobj, src)
+
+/obj/structure/divine/defensepylon/Destroy()
+	STOP_PROCESSING(SSobj, src)
+	return ..()
+
+/obj/structure/divine/defensepylon/attack_hand(mob/user)
+	if(!IS_HOG_CULTIST(user))
+		to_chat(user, span_warning("You don't know how to use this!"))
+		return
+	var/datum/antagonist/hog_cultist/C = user.mind?.has_antag_datum(/datum/antagonist/hog_cultist)
+	if(!C || C.cult_team?.team_colour != deity?.team_colour)
+		to_chat(user, span_warning("This pylon belongs to a different deity!"))
+		return
+	active = !active
+	if(active)
+		update_icon()
+		visible_message(span_notice("[src] hums to life."))
+	else
+		icon_state = "[initial(icon_state)]-[deity.team_colour]"
+		attacking = FALSE
+		visible_message(span_notice("[src] powers down."))
+
+/obj/structure/divine/defensepylon/process(delta_time)
+	if(!deity || !active || attacking)
+		return
+	if(world.time < last_shot + cooldown)
+		return
+
+	var/list/targets = list()
+	for(var/mob/living/L in view(5, src))
+		if(L.stat == DEAD)
+			continue
+		if(IS_HOG_CULTIST(L))
+			var/datum/antagonist/hog_cultist/C = L.mind?.has_antag_datum(/datum/antagonist/hog_cultist)
+			if(C?.cult_team?.team_colour == deity.team_colour)
+				continue
+		targets += L
+
+	if(!length(targets))
+		return
+
+	var/mob/living/target = pick(targets)
+	attacking = TRUE
+	icon_state = "defensepylonattack"
+	last_shot = world.time
+
+	visible_message(span_warning("[src] fires a bolt of energy at [target]!"))
+	var/obj/projectile/beam/laser/pylon_beam = new(get_turf(src))
+	pylon_beam.damage = 10
+	pylon_beam.firer = src
+	pylon_beam.preparePixelProjectile(target, src)
+	pylon_beam.fire()
+
+	addtimer(CALLBACK(src, PROC_REF(reset_attack)), 1 SECONDS)
+
+/obj/structure/divine/defensepylon/proc/reset_attack()
+	attacking = FALSE
+	update_icon()
+
+/obj/structure/divine/defensepylon/update_icon()
+	if(!deity)
+		return
+	if(attacking)
+		icon_state = "defensepylonattack"
+	else if(active)
+		icon_state = "[initial(icon_state)]-[deity.team_colour]"
+	else
+		icon_state = "[initial(icon_state)]-[deity.team_colour]"
 
 /obj/structure/divine/powerpylon
 	name = "power pylon"
@@ -308,9 +384,11 @@
 		if(/obj/structure/divine/sacrificealtar)
 			iron_required = 25
 			glass_required = 10
+		if(/obj/structure/divine/defensepylon)
+			iron_required = 25
+			glass_required = 5
 		else
 			iron_required = 10
-
 /obj/structure/divine/construction_holder/attackby(obj/item/I, mob/user, params)
 	if(istype(I, /obj/item/stack/sheet/iron))
 		var/obj/item/stack/sheet/iron/S = I
