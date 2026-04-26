@@ -19,6 +19,27 @@
 	damage_coeff = list(BRUTE = 0, BURN = 0, TOX = 0, CLONE = 0, STAMINA = 0, OXY = 0)
 	atmos_requirements = list("min_oxy" = 0, "max_oxy" = 0, "min_tox" = 0, "max_tox" = 0, "min_co2" = 0, "max_co2" = 0, "min_n2" = 0, "max_n2" = 0)
 	minbodytemp = 0
+	maxbodytemp = INFINITY/mob/living/simple_animal/god
+	name = "deity"
+	real_name = "deity"
+	desc = "A divine being watching over their followers."
+	icon = 'icons/obj/hand_of_god_structures.dmi'
+	icon_state = "marker-neutral"
+	mob_biotypes = MOB_SPIRIT
+	incorporeal_move = INCORPOREAL_MOVE_EMINENCE
+	invisibility = INVISIBILITY_OBSERVER
+	health = INFINITY
+	maxHealth = INFINITY
+	plane = GHOST_PLANE
+	healable = FALSE
+	sight = SEE_TURFS | SEE_MOBS | SEE_OBJS | SEE_SELF
+	throwforce = 0
+	see_in_dark = 5
+	lighting_alpha = LIGHTING_PLANE_ALPHA_VISIBLE
+	unsuitable_atmos_damage = 0
+	damage_coeff = list(BRUTE = 0, BURN = 0, TOX = 0, CLONE = 0, STAMINA = 0, OXY = 0)
+	atmos_requirements = list("min_oxy" = 0, "max_oxy" = 0, "min_tox" = 0, "max_tox" = 0, "min_co2" = 0, "max_co2" = 0, "min_n2" = 0, "max_n2" = 0)
+	minbodytemp = 0
 	maxbodytemp = INFINITY
 	status_flags = 0
 	wander = FALSE
@@ -248,19 +269,20 @@
 	var/list/data = list()
 	data["faith"] = faith
 	data["max_faith"] = max_faith
+	data["team_colour"] = team_colour
 
 	var/list/structures = list()
 	var/list/available = list(
-		"Power Pylon" = list(/obj/structure/divine/powerpylon, "powerpylon-red", "Generates faith for your deity."),
-		"Translocator" = list(/obj/structure/divine/translocator, "translocator-red", "Allows followers to teleport between translocators."),
-		"Forge" = list(/obj/structure/divine/forge, "forge-red", "Creates divine equipment for followers."),
-		"Sacrifice Altar" = list(/obj/structure/divine/sacrificealtar, "sacrificealtar-red", "Sacrifice beings for gems or faith."),
-		"Conversion Altar" = list(/obj/structure/divine/convertaltar, "convertaltar-red", "Convert crew to your deity."),
-		"Shrine" = list(/obj/structure/divine/shrine, "Shrine-red", "Boosts nearby followers."),
-		"Fountain" = list(/obj/structure/divine/fountain, "fountain-red", "Heals nearby followers."),
-		"Conduit" = list(/obj/structure/divine/conduit, "conduit-red", "Increases faith generation and extends domain."),
-		"Lazarus" = list(/obj/structure/divine/lazarus, "lazarus-r", "Revives a fallen follower once."),
-		"Defense Pylon" = list(/obj/structure/divine/defensepylon, "defensepylon-red", "Attacks non-believers automatically."),
+		"Power Pylon" = list(/obj/structure/divine/powerpylon, "powerpylon-red", "Generates faith for your deity.", "10 Iron"),
+		"Translocator" = list(/obj/structure/divine/translocator, "translocator-red", "Allows followers to teleport between translocators.", "10 Iron"),
+		"Forge" = list(/obj/structure/divine/forge, "forge-red", "Creates divine equipment for followers.", "10 Iron"),
+		"Sacrifice Altar" = list(/obj/structure/divine/sacrificealtar, "sacrificealtar-red", "Sacrifice beings for gems or faith.", "25 Iron, 10 Glass"),
+		"Conversion Altar" = list(/obj/structure/divine/convertaltar, "convertaltar-red", "Convert crew to your deity.", "25 Rods, 10 Glass"),
+		"Shrine" = list(/obj/structure/divine/shrine, "Shrine-red", "Boosts nearby followers.", "10 Iron"),
+		"Fountain" = list(/obj/structure/divine/fountain, "fountain-red", "Heals nearby followers.", "10 Iron"),
+		"Conduit" = list(/obj/structure/divine/conduit, "conduit-red", "Increases faith generation and extends domain.", "10 Iron"),
+		"Lazarus" = list(/obj/structure/divine/lazarus, "lazarus-r", "Revives a fallen follower once.", "10 Iron"),
+		"Defense Pylon" = list(/obj/structure/divine/defensepylon, "defensepylon-red", "Attacks non-believers automatically.", "10 Iron"),
 	)
 
 	for(var/name in available)
@@ -271,6 +293,7 @@
 			"icon" = info[2],
 			"desc" = info[3],
 			"cost" = HOG_FAITH_COST_STRUCTURE,
+			"materials" = info[4],
 		))
 
 	data["structures"] = structures
@@ -306,7 +329,7 @@
 	var/obj/structure/divine/construction_holder/CH = new(get_turf(src))
 	CH.assign_deity(src)
 	CH.setup_construction(build_path)
-	CH.visible_message(span_notice("A transparent, unfinished [CH] appears!"))
+	CH.visible_message(span_notice("A transparent, unfinished [CH.name] appears!"))
 	. = TRUE
 
 /mob/living/simple_animal/god/proc/place_trap()
