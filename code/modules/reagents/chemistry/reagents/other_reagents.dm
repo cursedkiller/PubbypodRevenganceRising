@@ -330,6 +330,8 @@
 		if(IS_CULTIST(affected_mob) && DT_PROB(10, delta_time))
 			affected_mob.say(pick("Av'te Nar'Sie","Pa'lid Mors","INO INO ORA ANA","SAT ANA!","Daim'niodeis Arc'iai Le'eones","R'ge Na'sie","Diabo us Vo'iscum","Eld' Mon Nobis"), forced = "holy water")
 			if(prob(10))
+		if(IS_HOG_CULTIST(affected_mob) && DT_PROB(10, delta_time))
+			affected_mob.say(pick("%Father dearest...please commend my spirit...", "%the light shineth in darkness; and the darkness comprehended it not...", "%his mercy is everlasting; and his truth endureth to all!", "%Father dearest... Why have you forsaken me...!", "The nexus... It's crying...", "Forgive Me!", "The task ahead is terrible, my weakness cannot be tolerated.!", "%The choir softly sing..."), forced = "holy water")
 				affected_mob.visible_message(span_danger("[affected_mob] starts having a seizure!"), span_userdanger("You have a seizure!"))
 				affected_mob.Unconscious(12 SECONDS)
 				to_chat(affected_mob, span_cultlarge(pick("Your blood is your bond - you are nothing without it", "Do not forget your place", \
@@ -341,6 +343,9 @@
 				affected_mob.mind.remove_antag_datum(/datum/antagonist/cult)
 			if(IS_SERVANT_OF_RATVAR(affected_mob))
 				remove_servant_of_ratvar(affected_mob.mind)
+			if(IS_HOG_CULTIST(affected_mob))
+				affected_mob.mind.remove_antag_datum(/datum/antagonist/hog_cultist)
+				to_chat(affected_mob, span_userdanger("Your faith has been washed away by holy water!"))
 			affected_mob.remove_status_effect(/datum/status_effect/jitter)
 			affected_mob.remove_status_effect(/datum/status_effect/speech/stutter)
 			holder?.remove_reagent(type, volume) // maybe this is a little too perfect and a max() cap on the statuses would be better??
