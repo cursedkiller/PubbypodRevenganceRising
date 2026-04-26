@@ -169,6 +169,7 @@
 
 /obj/projectile/beam/pylon
 	name = "divine blast"
+	icon = 'icons/obj/hand_of_god_structures.dmi'
 	icon_state = "divine_blast"
 	damage = 17
 	damage_type = BURN
