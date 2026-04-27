@@ -37,7 +37,7 @@
 
 /atom/movable/screen/hog/GodSpeak
 	icon = 'icons/obj/hand_of_god_structures.dmi'
-	icon_state = "God-speak"
+	icon_state = "God-Speak"
 	name = "Divine Transmission"
 	desc = "Speak through a target, making them say your words aloud. Click again to cancel."
 
@@ -45,11 +45,13 @@
 	if(istype(usr, /mob/living/simple_animal/god))
 		var/mob/living/simple_animal/god/deity = usr
 		if(!deity.transmission_spell)
-			return
-		if(deity.transmission_spell.active)
-			deity.transmission_spell.unset_click_ability(deity)
+			deity.transmission_spell = new(deity)
+			deity.transmission_spell.Grant(deity)
+		var/datum/action/spell/pointed/divine_transmission/DT = deity.transmission_spell
+		if(DT.active)
+			DT.unset_click_ability(deity)
 		else
-			deity.transmission_spell.set_click_ability(deity)
+			DT.set_click_ability(deity)
 
 /atom/movable/screen/hog/BuildStructure
 	icon_state = "Spawn Structure"
