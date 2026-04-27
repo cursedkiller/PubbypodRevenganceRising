@@ -38,11 +38,6 @@
 	if(button)
 		button.update_icon()
 
-/datum/action/spell/pointed/divine_transmission/IsAvailable()
-	if(!our_god)
-		return FALSE
-	return ..()
-
 /datum/action/spell/pointed/divine_transmission/is_valid_spell(mob/user, atom/target)
 	if(!isliving(target))
 		return FALSE
