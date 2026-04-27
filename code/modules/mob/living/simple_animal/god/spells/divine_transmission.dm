@@ -8,7 +8,7 @@
 	background_icon_state = "God-Speak"
 
 	school = SCHOOL_EVOCATION
-	cooldown_time = 10 SECONDS
+	cooldown_time = 0
 	invocation_type = INVOCATION_NONE
 	spell_requirements = NONE
 	antimagic_flags = NONE
@@ -17,33 +17,32 @@
 	active_msg = "You reach out to speak through a mortal vessel..."
 	deactive_msg = "You withdraw your divine presence."
 
-	/// Ref back to the god who owns this spell
 	var/mob/living/simple_animal/god/our_god
 
 /datum/action/spell/pointed/divine_transmission/New(mob/living/simple_animal/god/god_ref)
 	. = ..()
 	our_god = god_ref
-	update_icon_for_team()
+	button_icon_state = ""
+	background_icon_state = ""
 
 /datum/action/spell/pointed/divine_transmission/Grant(mob/grant_to)
 	. = ..()
-	// Force position to where the old GodSpeak HUD button was
 	var/atom/movable/screen/movable/action_button/button = viewers[grant_to]
 	if(button)
-		button.screen_loc = ui_inventory
+		button.alpha = 0
+		button.mouse_opacity = MOUSE_OPACITY_TRANSPARENT
+		button.icon = null
+		button.icon_state = ""
+		button.cut_overlays()
 
-/datum/action/spell/pointed/divine_transmission/proc/update_icon_for_team()
-	if(!our_god)
-		return
-	if(our_god.team_colour == HOG_TEAM_BLUE)
-		button_icon_state = "God-Speak-blue"
-		background_icon_state = "God-Speak-blue"
-	else
-		button_icon_state = "God-Speak"
-		background_icon_state = "God-Speak"
-	var/atom/movable/screen/movable/action_button/button = viewers[our_god]
+/datum/action/spell/pointed/divine_transmission/update_button(atom/movable/screen/movable/action_button/button, status_only = FALSE, force = FALSE)
+	. = ..()
 	if(button)
-		button.update_icon()
+		button.alpha = 0
+		button.mouse_opacity = MOUSE_OPACITY_TRANSPARENT
+		button.icon = null
+		button.icon_state = ""
+		button.cut_overlays()
 
 /datum/action/spell/pointed/divine_transmission/is_valid_spell(mob/user, atom/target)
 	if(!isliving(target))
