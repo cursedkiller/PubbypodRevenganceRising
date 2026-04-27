@@ -72,7 +72,6 @@
 	return ..()
 
 /mob/living/simple_animal/god/ClickOn(atom/A, params)
-	// Handle defense pylon toggling directly since we're on the ghost plane
 	if(istype(A, /obj/structure/divine/defensepylon))
 		var/obj/structure/divine/defensepylon/P = A
 		if(!P.deity)
@@ -242,7 +241,7 @@
 	data["max_faith"] = max_faith
 	data["team_colour"] = team_colour
 
-	var/icon_suffix = team_colour // "red" or "blue"
+	var/icon_suffix = team_colour
 
 	var/list/structures = list()
 	var/list/available = list(
@@ -251,19 +250,20 @@
 		"Forge" = list(/obj/structure/divine/forge, "forge-[icon_suffix]", "Permit mortals to manipulate ichor to forge weapons of war.", "10 Iron", FALSE),
 		"Sacrifice Altar" = list(/obj/structure/divine/sacrificealtar, "sacrificealtar-[icon_suffix]", "Trade blood for faith or rival souls for boons.", "25 Iron, 10 Glass", FALSE),
 		"Conversion Altar" = list(/obj/structure/divine/convertaltar, "convertaltar-[icon_suffix]", "Convert the masses to your whims, as long as their minds are willing to learn.", "25 Rods, 10 Glass", !free_conversion_altar_used),
-		"Shrine" = list(/obj/structure/divine/shrine, "Shrine-[icon_suffix]", "An idol to inspire and bolster the strength of your following.", "10 Iron", FALSE),
+		"Shrine" = list(/obj/structure/divine/shrine, "Shrine-[icon_suffix]", "An idol to strike terror or awe of your presence.", "25 Iron", FALSE),
 		"Fountain" = list(/obj/structure/divine/fountain, "fountain-[icon_suffix]", "Produces the waters of life and death to cure ailments or deliver them.", "10 Iron", FALSE),
-		"Conduit" = list(/obj/structure/divine/conduit, "conduit-[icon_suffix]", "Increases faith generation and the reach of your domain.", "10 Iron", FALSE),
-		"Lazarus" = list(/obj/structure/divine/lazarus, "lazarus-[icon_suffix]", "Imbue the dead with your power to resurrect them, or maybe even yourself...", "10 Iron", FALSE),
+		"Conduit" = list(/obj/structure/divine/conduit, "conduit-[icon_suffix]", "Increases faith generation and expands your domain vision.", "15 Rods, 10 Iron", FALSE),
+		"Magic Mirror" = list(/obj/structure/divine/magic_mirror, "mirror_mirror", "Scry on enemies to locate ideal vessels.", "5 Iron, 30 Glass, 1 Lesser Gem", FALSE, "icons/obj/hand_of_god_secondary.dmi"),
 		"Defense Pylon" = list(/obj/structure/divine/defensepylon, "defensepylon-[icon_suffix]", "Automatically fires upon non-believers. Toggle on/off with Left Click.", "10 Iron", !free_pylon_used),
 	)
 
 	for(var/name in available)
 		var/list/info = available[name]
+		var/icon_file = (info.len >= 7 && info[7]) ? info[7] : "icons/obj/hand_of_god_structures.dmi"
 		structures += list(list(
 			"name" = name,
 			"path" = "[info[1]]",
-			"icon" = "icons/obj/hand_of_god_structures.dmi",
+			"icon" = icon_file,
 			"icon_state" = info[2],
 			"desc" = info[3],
 			"cost" = HOG_FAITH_COST_STRUCTURE,
@@ -546,8 +546,7 @@
 	msg = trim(copytext_char(sanitize(msg), 1, MAX_MESSAGE_LEN))
 	if(!msg)
 		return
-	var/rendered = "<font color='[team_colour]'><b><i><span class='game say'>Divine Telepathy,</i> <span class='name'>[name]</span> <span class='message'>[msg]</span></b></span></font>"
-	to_chat(src, rendered)
+	var/rendered = "<font color='[team_colour]'><span class='big'><b><i>Divine Telepathy,</i> <span class='name'>[name]</span> <span class='message'>[msg]</span></b></span></font>"
 	for(var/mob/M in GLOB.mob_list)
 		if(IS_HOG_CULTIST(M))
 			var/datum/antagonist/hog_cultist/cultist = M.mind?.has_antag_datum(/datum/antagonist/hog_cultist)
@@ -569,17 +568,14 @@
 		hud_used.hoggod_hud(src)
 	update_vision()
 
-	// Only ask for a name on first login, not relogs
 	if(!name_chosen)
 		name_chosen = TRUE
 		pick_deity_name()
 
-	// Give debug-level radio access (all channels including syndicate and centcom)
 	var/obj/item/radio/headset/headset_cent/debug/god_radio = new(src)
 	god_radio.set_frequency(FREQ_COMMON)
 	god_radio.command = TRUE
 
-	// Set up the Divine Transmission spell (HUD screen object handles activation)
 	if(!transmission_spell)
 		transmission_spell = new(src)
 		transmission_spell.Grant(src)
