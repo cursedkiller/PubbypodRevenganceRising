@@ -45,6 +45,8 @@
 	var/free_conversion_altar_used = FALSE
 	/// Reference to the divine transmission spell
 	var/datum/action/spell/pointed/divine_transmission/transmission_spell = null
+	/// Whether the deity has chosen a name yet
+	var/name_chosen = FALSE
 
 /mob/living/simple_animal/god/Initialize(mapload)
 	. = ..()
@@ -566,7 +568,8 @@
 	update_vision()
 
 	// Only ask for a name on first login, not relogs
-	if(name == initial(name) || name == "deity")
+	if(!name_chosen)
+		name_chosen = TRUE
 		pick_deity_name()
 
 	// Give debug-level radio access (all channels including syndicate and centcom)
@@ -581,6 +584,10 @@
 	if(!transmission_spell)
 		transmission_spell = new(src)
 		transmission_spell.Grant(src)
+		// Reposition to where the old HUD button was
+		var/atom/movable/screen/movable/action_button/button = transmission_spell.viewers[src]
+		if(button)
+			button.screen_loc = ui_inventory
 
 	to_chat(src, span_notice("You are a deity!"))
 	to_chat(src, "You are worshipped by a cult. Use the buttons on your HUD to interact with the world.")
