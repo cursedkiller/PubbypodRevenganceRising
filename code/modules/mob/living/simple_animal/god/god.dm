@@ -47,6 +47,8 @@
 	var/datum/action/spell/pointed/divine_transmission/transmission_spell = null
 	/// Whether the deity has chosen a name yet
 	var/name_chosen = FALSE
+	/// Whether the deity is currently in divine transmission targeting mode
+	var/transmitting = FALSE
 
 /mob/living/simple_animal/god/Initialize(mapload)
 	. = ..()
@@ -66,7 +68,7 @@
 	if(transmission_spell)
 		transmission_spell.Remove(src)
 		transmission_spell = null
-	REMOVE_TRAIT(src, TRAIT_SPEECH_BOOSTER, TRAIT_HOG)
+	transmitting = FALSE
 	return ..()
 
 /mob/living/simple_animal/god/ClickOn(atom/A, params)
@@ -544,7 +546,7 @@
 	msg = trim(copytext_char(sanitize(msg), 1, MAX_MESSAGE_LEN))
 	if(!msg)
 		return
-	var/rendered = "<font color='[team_colour]'><i><span class='game say'>Divine Telepathy,</i> <span class='name'>[name]</span> <span class='message'>[msg]</span></span></font>"
+	var/rendered = "<font color='[team_colour]'><b><i><span class='game say'>Divine Telepathy,</i> <span class='name'>[name]</span> <span class='message'>[msg]</span></b></span></font>"
 	to_chat(src, rendered)
 	for(var/mob/M in GLOB.mob_list)
 		if(IS_HOG_CULTIST(M))
@@ -576,9 +578,6 @@
 	var/obj/item/radio/headset/headset_cent/debug/god_radio = new(src)
 	god_radio.set_frequency(FREQ_COMMON)
 	god_radio.command = TRUE
-
-	// Make the god's voice naturally loud (loudspeaker effect)
-	ADD_TRAIT(src, TRAIT_SPEECH_BOOSTER, TRAIT_HOG)
 
 	// Set up the Divine Transmission spell (HUD screen object handles activation)
 	if(!transmission_spell)
