@@ -78,6 +78,8 @@
 //Defense Pylon rah!!!//
 
 
+//Defense Pylon rah!!!//
+
 /obj/structure/divine/defensepylon
 	name = "defense pylon"
 	desc = "A defensive structure that attacks non-believers. Click to toggle on/off."
@@ -113,11 +115,6 @@
 		visible_message(span_notice("[src] powers down."))
 	update_icon()
 
-/obj/structure/divine/defensepylon/attack_ghost(mob/user)
-	if(!IS_HOG_GOD(user))
-		return
-	attack_hand(user)
-
 /obj/structure/divine/defensepylon/process(delta_time)
 	if(!deity || !active || attacking)
 		return
@@ -149,7 +146,7 @@
 	update_icon()
 
 	visible_message(span_warning("[src] fires a blast of divine energy at [target]!"))
-	var/obj/projectile/beam/pylon/bolt = new /obj/projectile/beam/pylon(get_turf(src))
+	var/obj/projectile/divine_blast/bolt = new /obj/projectile/divine_blast(get_turf(src))
 	bolt.firer = src
 	bolt.light_color = deity.team_colour == HOG_TEAM_RED ? LIGHT_COLOR_RED : LIGHT_COLOR_BLUE
 	bolt.preparePixelProjectile(target, src)
@@ -172,16 +169,18 @@
 	else
 		icon_state = initial(icon_state)
 
-/obj/projectile/beam/pylon
+/obj/projectile/divine_blast
 	name = "divine blast"
 	icon = 'icons/obj/hand_of_god_structures.dmi'
 	icon_state = "divine_blast"
 	damage = 17
 	damage_type = BURN
 	light_color = LIGHT_COLOR_RED
+	light_range = 2
+	speed = 0.8
 	impact_effect_type = /obj/effect/temp_visual/impact_effect/red_laser
 
-/obj/projectile/beam/pylon/on_hit(atom/target, blocked = FALSE)
+/obj/projectile/divine_blast/on_hit(atom/target, blocked = FALSE)
 	. = ..()
 	if(iscarbon(target))
 		var/mob/living/carbon/C = target
