@@ -238,18 +238,20 @@
 	data["max_faith"] = max_faith
 	data["team_colour"] = team_colour
 
+	var/icon_suffix = team_colour // "red" or "blue"
+
 	var/list/structures = list()
 	var/list/available = list(
-		"Power Pylon" = list(/obj/structure/divine/powerpylon, "powerpylon-red", "Increases your Divine presence and bolsters the strength of your miracles.", "10 Iron", FALSE),
-		"Translocator" = list(/obj/structure/divine/translocator, "translocator-red", "Link portals together to create a gateway between locations.", "10 Iron", FALSE),
-		"Forge" = list(/obj/structure/divine/forge, "forge-red", "Permit mortals to manipulate ichor to forge weapons of war.", "10 Iron", FALSE),
-		"Sacrifice Altar" = list(/obj/structure/divine/sacrificealtar, "sacrificealtar-red", "Trade blood for faith or rival souls for boons.", "25 Iron, 10 Glass", FALSE),
-		"Conversion Altar" = list(/obj/structure/divine/convertaltar, "convertaltar-red", "Convert the masses to your whims, as long as their minds are willing to learn.", "25 Rods, 10 Glass", !free_conversion_altar_used),
-		"Shrine" = list(/obj/structure/divine/shrine, "Shrine-red", "An idol to inspire and bolster the strength of your following.", "10 Iron", FALSE),
-		"Fountain" = list(/obj/structure/divine/fountain, "fountain-red", "Produces the waters of life and death to cure ailments or deliver them.", "10 Iron", FALSE),
-		"Conduit" = list(/obj/structure/divine/conduit, "conduit-red", "Increases faith generation and the reach of your domain.", "10 Iron", FALSE),
-		"Lazarus" = list(/obj/structure/divine/lazarus, "lazarus-red", "Imbue the dead with your power to resurrect them, or maybe even yourself...", "10 Iron", FALSE),
-		"Defense Pylon" = list(/obj/structure/divine/defensepylon, "defensepylon-red", "Automatically fires upon non-believers. Toggle on/off with Left Click.", "10 Iron", !free_pylon_used),
+		"Power Pylon" = list(/obj/structure/divine/powerpylon, "powerpylon-[icon_suffix]", "Increases your Divine presence and bolsters the strength of your miracles.", "10 Iron", FALSE),
+		"Translocator" = list(/obj/structure/divine/translocator, "translocator-[icon_suffix]", "Link portals together to create a gateway between locations.", "10 Iron", FALSE),
+		"Forge" = list(/obj/structure/divine/forge, "forge-[icon_suffix]", "Permit mortals to manipulate ichor to forge weapons of war.", "10 Iron", FALSE),
+		"Sacrifice Altar" = list(/obj/structure/divine/sacrificealtar, "sacrificealtar-[icon_suffix]", "Trade blood for faith or rival souls for boons.", "25 Iron, 10 Glass", FALSE),
+		"Conversion Altar" = list(/obj/structure/divine/convertaltar, "convertaltar-[icon_suffix]", "Convert the masses to your whims, as long as their minds are willing to learn.", "25 Rods, 10 Glass", !free_conversion_altar_used),
+		"Shrine" = list(/obj/structure/divine/shrine, "Shrine-[icon_suffix]", "An idol to inspire and bolster the strength of your following.", "10 Iron", FALSE),
+		"Fountain" = list(/obj/structure/divine/fountain, "fountain-[icon_suffix]", "Produces the waters of life and death to cure ailments or deliver them.", "10 Iron", FALSE),
+		"Conduit" = list(/obj/structure/divine/conduit, "conduit-[icon_suffix]", "Increases faith generation and the reach of your domain.", "10 Iron", FALSE),
+		"Lazarus" = list(/obj/structure/divine/lazarus, "lazarus-[icon_suffix]", "Imbue the dead with your power to resurrect them, or maybe even yourself...", "10 Iron", FALSE),
+		"Defense Pylon" = list(/obj/structure/divine/defensepylon, "defensepylon-[icon_suffix]", "Automatically fires upon non-believers. Toggle on/off with Left Click.", "10 Iron", !free_pylon_used),
 	)
 
 	for(var/name in available)
@@ -575,7 +577,7 @@
 	// Make the god's voice naturally loud (loudspeaker effect)
 	ADD_TRAIT(src, TRAIT_SPEECH_BOOSTER, TRAIT_HOG)
 
-	// Set up the Divine Transmission spell (HUD button handles activation, toggles on/off)
+	// Set up the Divine Transmission spell
 	if(!transmission_spell)
 		transmission_spell = new(src)
 		transmission_spell.Grant(src)
