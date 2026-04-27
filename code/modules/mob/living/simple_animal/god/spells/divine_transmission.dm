@@ -44,6 +44,16 @@
 		button.icon_state = ""
 		button.cut_overlays()
 
+/datum/action/spell/pointed/divine_transmission/on_activation(mob/on_who)
+	. = ..()
+	if(our_god)
+		our_god.transmitting = TRUE
+
+/datum/action/spell/pointed/divine_transmission/on_deactivation(mob/on_who, refund_cooldown = TRUE)
+	. = ..()
+	if(our_god)
+		our_god.transmitting = FALSE
+
 /datum/action/spell/pointed/divine_transmission/is_valid_spell(mob/user, atom/target)
 	if(!isliving(target))
 		return FALSE
@@ -56,16 +66,17 @@
 	. = ..()
 	if(!our_god)
 		return FALSE
+	our_god.transmitting = FALSE
 	if(!our_god.god_nexus)
 		to_chat(our_god, span_warning("You must place your nexus first!"))
-		return FALSE
-	if(!our_god.spend_faith(35))
 		return FALSE
 
 	var/msg = tgui_input_text(our_god, "What message to broadcast through [target]?", "Divine Transmission", "", MAX_MESSAGE_LEN, multiline = TRUE)
 	if(!msg)
-		our_god.add_faith(35)
-		return FALSE
+		return FALSE // No faith spent if cancelled
+
+	if(!our_god.spend_faith(35))
+		return FALSE // Not enough faith
 
 	target.say(msg, forced = "divine thought")
 	to_chat(our_god, span_notice("Your voice echoes through [target]."))
