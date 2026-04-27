@@ -25,6 +25,13 @@
 	our_god = god_ref
 	update_icon_for_team()
 
+/datum/action/spell/pointed/divine_transmission/Grant(mob/grant_to)
+	. = ..()
+	// Force position to where the old GodSpeak HUD button was
+	var/atom/movable/screen/movable/action_button/button = viewers[grant_to]
+	if(button)
+		button.screen_loc = ui_inventory
+
 /datum/action/spell/pointed/divine_transmission/proc/update_icon_for_team()
 	if(!our_god)
 		return
