@@ -228,7 +228,7 @@
 /obj/structure/divine/convertaltar
 	name = "conversion altar"
 	desc = "Used to convert crew members and rival cultists to your deity. Drag a target onto it to begin."
-	icon_state = "convertaltar"
+	icon_state = "convert-altar"
 	max_integrity = 250
 	var/converting = FALSE
 
@@ -313,7 +313,7 @@
 /obj/structure/divine/sacrificealtar
 	name = "sacrifice altar"
 	desc = "Used to sacrifice beings for gems or faith. Drag a target onto it to begin."
-	icon_state = "sacrificealtar"
+	icon_state = "sacrifice-altar"
 	max_integrity = 250
 	var/sacrificing = FALSE
 
@@ -388,17 +388,17 @@
 
 
 // ============================================================
-// WARD TRAP
+// WARD
 // ============================================================
 
-/obj/structure/trap/ward
+/obj/structure/divine/ward
 	name = "ward"
 	desc = "A protective ward that damages non-believers nearby."
-	icon = 'icons/obj/hand_of_god_structures.dmi'
 	icon_state = "ward"
-	density = FALSE
-	anchored = TRUE
 	max_integrity = 100
+	density = TRUE
+	anchored = TRUE
+	is_trap = TRUE
 
 
 // ============================================================
@@ -413,13 +413,13 @@
 
 /datum/mood_event/shrine_blessed
 	description = "I feel the presence of my deity protecting me.\n"
-	mood_change = 5
-	timeout = 10 SECONDS
+	mood_change = 10
+	timeout = 1 MINUTES
 
 /datum/mood_event/shrine_dread
 	description = "An oppressive divine presence weighs on my soul...\n"
-	mood_change = -5
-	timeout = 10 SECONDS
+	mood_change = -10
+	timeout = 1 MINUTES
 
 
 // ============================================================
@@ -432,11 +432,11 @@
 	icon_state = "Shrine"
 	max_integrity = 150
 	var/aura_range = 5
-	var/active_mode = null
+	var/active_mode = "buff"
 	var/mode_cooldown = 0
 	var/mode_cooldown_time = 30 SECONDS
 	var/prayer_cooldown = 0
-	var/prayer_cooldown_time = 1 MINUTES
+	var/prayer_cooldown_time = 10 MINUTES
 
 /obj/structure/divine/shrine/Initialize(mapload)
 	. = ..()
@@ -447,7 +447,7 @@
 	return ..()
 
 /obj/structure/divine/shrine/process(delta_time)
-	if(!deity || !active_mode)
+	if(!deity)
 		return
 	for(var/mob/living/carbon/human/H in range(aura_range, src))
 		if(H.stat == DEAD)
@@ -467,7 +467,7 @@
 			SEND_SIGNAL(H, COMSIG_ADD_MOOD_EVENT, "shrine_dread", /datum/mood_event/shrine_dread)
 
 /obj/structure/divine/shrine/attack_hand(mob/user)
-	if(IS_HOG_GOD(user))
+	if(istype(user, /mob/living/simple_animal/god))
 		var/mob/living/simple_animal/god/G = user
 		if(G.team_colour != deity?.team_colour)
 			to_chat(user, span_warning("This shrine belongs to a different deity!"))
@@ -475,22 +475,14 @@
 		if(mode_cooldown > world.time)
 			to_chat(G, span_warning("The shrine's power is still settling. Wait [round((mode_cooldown - world.time)/10)] seconds."))
 			return
-		var/choice = tgui_alert(G, "Choose the shrine's aura:", "Divine Shrine", list("Bless Followers", "Curse Non-Believers", "Deactivate", "Cancel"))
-		if(!choice || choice == "Cancel")
-			return
-		switch(choice)
-			if("Bless Followers")
-				active_mode = "buff"
-				to_chat(G, span_notice("The shrine now blesses your followers with divine protection."))
-				visible_message(span_notice("[src] glows with a warm, protective light."))
-			if("Curse Non-Believers")
-				active_mode = "debuff"
-				to_chat(G, span_notice("The shrine now curses non-believers with dread."))
-				visible_message(span_warning("[src] emanates an oppressive, dark aura."))
-			if("Deactivate")
-				active_mode = null
-				to_chat(G, span_notice("The shrine's aura fades."))
-				visible_message(span_notice("[src]'s glow fades to nothing."))
+		if(active_mode == "buff")
+			active_mode = "debuff"
+			to_chat(G, span_notice("The shrine now curses non-believers with dread."))
+			visible_message(span_warning("[src] emanates an oppressive, dark aura."))
+		else
+			active_mode = "buff"
+			to_chat(G, span_notice("The shrine now blesses your followers with divine protection."))
+			visible_message(span_notice("[src] glows with a warm, protective light."))
 		mode_cooldown = world.time + mode_cooldown_time
 		return
 
@@ -554,7 +546,7 @@
 	. = ..()
 	mirror = M
 
-/datum/action/mirror_cancel/Trigger(trigger_flags)
+/datum/action/mirror_cancel/on_activate(trigger_flags)
 	if(!mirror)
 		return
 	mirror.stop_scrying()
@@ -572,7 +564,7 @@
 	. = ..()
 	mirror = M
 
-/datum/action/mirror_trap_soul/Trigger(trigger_flags)
+/datum/action/mirror_trap_soul/on_activate(trigger_flags)
 	if(!mirror)
 		return
 	if(!mirror.scry_target || mirror.scry_target.stat == DEAD)
