@@ -68,46 +68,6 @@
 	transmitting = FALSE
 	return ..()
 
-/mob/living/simple_animal/god/ClickOn(atom/A, params)
-	// Handle defense pylon toggling
-	if(istype(A, /obj/structure/divine/defensepylon))
-		var/obj/structure/divine/defensepylon/P = A
-		if(!P.deity)
-			to_chat(src, span_warning("This pylon is not connected to a deity!"))
-			return
-		if(team_colour != P.deity.team_colour)
-			to_chat(src, span_warning("This pylon belongs to a different deity!"))
-			return
-		P.active = !P.active
-		P.attacking = FALSE
-		if(P.active)
-			P.visible_message(span_notice("[P] hums to life."))
-		else
-			P.visible_message(span_notice("[P] powers down."))
-		P.update_icon()
-		return
-	// Handle shrine toggling — same pattern as pylon
-	if(istype(A, /obj/structure/divine/shrine))
-		var/obj/structure/divine/shrine/S = A
-		if(!S.deity)
-			to_chat(src, span_warning("This shrine is not connected to a deity!"))
-			return
-		if(team_colour != S.deity.team_colour)
-			to_chat(src, span_warning("This shrine belongs to a different deity!"))
-			return
-		if(S.mode_cooldown > world.time)
-			to_chat(src, span_warning("The shrine's power is still settling. Wait [round((S.mode_cooldown - world.time)/10)] seconds."))
-			return
-		if(S.active_mode == "buff")
-			S.active_mode = "debuff"
-			S.visible_message(span_warning("[S]'s eyes darken as an oppressive aura emanates from it, weighing down the souls of the wicked."))
-		else
-			S.active_mode = "buff"
-			S.visible_message(span_notice("[S]'s eyes glow warmly as a protective divine light radiates outward."))
-		S.mode_cooldown = world.time + S.mode_cooldown_time
-		return
-	return ..()
-
 /mob/living/simple_animal/god/UnarmedAttack(atom/A, proximity_flag, modifiers)
 	return FALSE
 
