@@ -580,14 +580,10 @@
 	// Make the god's voice naturally loud (loudspeaker effect)
 	ADD_TRAIT(src, TRAIT_SPEECH_BOOSTER, TRAIT_HOG)
 
-	// Set up the Divine Transmission spell
+	// Set up the Divine Transmission spell (position handled by Grant() override)
 	if(!transmission_spell)
 		transmission_spell = new(src)
 		transmission_spell.Grant(src)
-		// Reposition to where the old HUD button was
-		var/atom/movable/screen/movable/action_button/button = transmission_spell.viewers[src]
-		if(button)
-			button.screen_loc = ui_inventory
 
 	to_chat(src, span_notice("You are a deity!"))
 	to_chat(src, "You are worshipped by a cult. Use the buttons on your HUD to interact with the world.")
