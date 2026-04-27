@@ -580,7 +580,7 @@
 	// Make the god's voice naturally loud (loudspeaker effect)
 	ADD_TRAIT(src, TRAIT_SPEECH_BOOSTER, TRAIT_HOG)
 
-	// Set up the Divine Transmission spell (position handled by Grant() override)
+	// Set up the Divine Transmission spell (HUD screen object handles activation)
 	if(!transmission_spell)
 		transmission_spell = new(src)
 		transmission_spell.Grant(src)
