@@ -34,7 +34,9 @@
 	set_light(2)
 
 
-//NEXUS
+// ============================================================
+// NEXUS
+// ============================================================
 
 /obj/structure/divine/nexus
 	name = "nexus"
@@ -75,7 +77,9 @@
 	set_light(4)
 
 
-//DEFENSE PYLON
+// ============================================================
+// DEFENSE PYLON
+// ============================================================
 
 /obj/structure/divine/defensepylon
 	name = "defense pylon"
@@ -184,7 +188,9 @@
 		C.adjustFireLoss(5)
 
 
-//POWER PYLON
+// ============================================================
+// POWER PYLON
+// ============================================================
 
 /obj/structure/divine/powerpylon
 	name = "power pylon"
@@ -192,11 +198,21 @@
 	icon_state = "powerpylon"
 	max_integrity = 150
 
+
+// ============================================================
+// TRANSLOCATOR
+// ============================================================
+
 /obj/structure/divine/translocator
 	name = "translocator"
 	desc = "Allows followers to teleport between translocators."
 	icon_state = "translocator"
 	max_integrity = 200
+
+
+// ============================================================
+// FORGE
+// ============================================================
 
 /obj/structure/divine/forge
 	name = "forge"
@@ -204,18 +220,10 @@
 	icon_state = "forge"
 	max_integrity = 300
 
-/obj/structure/divine/magic_mirror
-	name = "magic mirror"
-	desc = "A divine mirror that allows followers to scry on their enemies and find the most appropriate vessel."
-	icon = 'icons/obj/hand_of_god_secondary.dmi'
-	icon_state = "mirror_mirror"
-	max_integrity = 200
 
-/obj/structure/divine/magic_mirror/update_icon()
-	if(!deity)
-		return
-	icon = 'icons/obj/hand_of_god_secondary.dmi'
-	icon_state = "mirror_mirror"
+// ============================================================
+// CONVERSION ALTAR
+// ============================================================
 
 /obj/structure/divine/convertaltar
 	name = "conversion altar"
@@ -297,6 +305,11 @@
 	to_chat(user, span_notice("Conversion complete!"))
 	converting = FALSE
 
+
+// ============================================================
+// SACRIFICE ALTAR
+// ============================================================
+
 /obj/structure/divine/sacrificealtar
 	name = "sacrifice altar"
 	desc = "Used to sacrifice beings for gems or faith. Drag a target onto it to begin."
@@ -374,7 +387,23 @@
 	sacrificing = FALSE
 
 
-//SHRINE
+// ============================================================
+// WARD TRAP
+// ============================================================
+
+/obj/structure/trap/ward
+	name = "ward"
+	desc = "A protective ward that damages non-believers nearby."
+	icon = 'icons/obj/hand_of_god_structures.dmi'
+	icon_state = "ward"
+	density = FALSE
+	anchored = TRUE
+	max_integrity = 100
+
+
+// ============================================================
+// SHRINE (MOVE SPEED MODIFIERS + MOOD EVENTS)
+// ============================================================
 
 /datum/movespeed_modifier/shrine_buff
 	multiplicative_slowdown = -0.5
@@ -392,12 +421,22 @@
 	mood_change = -5
 	timeout = 10 SECONDS
 
+
+// ============================================================
+// SHRINE
+// ============================================================
+
 /obj/structure/divine/shrine
 	name = "shrine"
 	desc = "A holy shrine that bolsters the faithful with divine protection and unnerves the wicked with oppressive dread."
 	icon_state = "Shrine"
 	max_integrity = 150
 	var/aura_range = 5
+	var/active_mode = null
+	var/mode_cooldown = 0
+	var/mode_cooldown_time = 30 SECONDS
+	var/prayer_cooldown = 0
+	var/prayer_cooldown_time = 1 MINUTES
 
 /obj/structure/divine/shrine/Initialize(mapload)
 	. = ..()
@@ -408,57 +447,89 @@
 	return ..()
 
 /obj/structure/divine/shrine/process(delta_time)
-	if(!deity)
+	if(!deity || !active_mode)
 		return
 	for(var/mob/living/carbon/human/H in range(aura_range, src))
 		if(H.stat == DEAD)
 			continue
-		if(IS_HOG_CULTIST(H))
+		if(active_mode == "buff" && IS_HOG_CULTIST(H))
 			var/datum/antagonist/hog_cultist/C = H.mind?.has_antag_datum(/datum/antagonist/hog_cultist)
 			if(C?.cult_team?.team_colour == deity.team_colour)
 				H.add_movespeed_modifier(/datum/movespeed_modifier/shrine_buff)
 				H.physiology?.damage_resistance = max(H.physiology.damage_resistance, 10)
 				H.physiology?.stamina_mod = max(H.physiology.stamina_mod, 0.8)
 				H.physiology?.burn_mod = max(H.physiology.burn_mod, 0.8)
-				H.mob_mood?.add_mood_event("shrine_blessing", /datum/mood_event/shrine_blessed)
-				continue
-		H.add_movespeed_modifier(/datum/movespeed_modifier/shrine_debuff)
-		H.physiology?.damage_resistance = min(H.physiology.damage_resistance, -10)
-		H.physiology?.stamina_mod = min(H.physiology.stamina_mod, 1.2)
-		H.mob_mood?.add_mood_event("shrine_dread", /datum/mood_event/shrine_dread)
+				SEND_SIGNAL(H, COMSIG_ADD_MOOD_EVENT, "shrine_blessing", /datum/mood_event/shrine_blessed)
+		else if(active_mode == "debuff" && !IS_HOG_CULTIST(H) && !IS_HOG_GOD(H))
+			H.add_movespeed_modifier(/datum/movespeed_modifier/shrine_debuff)
+			H.physiology?.damage_resistance = min(H.physiology.damage_resistance, -10)
+			H.physiology?.stamina_mod = min(H.physiology.stamina_mod, 1.2)
+			SEND_SIGNAL(H, COMSIG_ADD_MOOD_EVENT, "shrine_dread", /datum/mood_event/shrine_dread)
 
 /obj/structure/divine/shrine/attack_hand(mob/user)
-	if(!ishuman(user) || !IS_HOG_CULTIST(user))
-		to_chat(user, span_warning("You don't know how to use this!"))
+	if(IS_HOG_GOD(user))
+		var/mob/living/simple_animal/god/G = user
+		if(G.team_colour != deity?.team_colour)
+			to_chat(user, span_warning("This shrine belongs to a different deity!"))
+			return
+		if(mode_cooldown > world.time)
+			to_chat(G, span_warning("The shrine's power is still settling. Wait [round((mode_cooldown - world.time)/10)] seconds."))
+			return
+		var/choice = tgui_alert(G, "Choose the shrine's aura:", "Divine Shrine", list("Bless Followers", "Curse Non-Believers", "Deactivate", "Cancel"))
+		if(!choice || choice == "Cancel")
+			return
+		switch(choice)
+			if("Bless Followers")
+				active_mode = "buff"
+				to_chat(G, span_notice("The shrine now blesses your followers with divine protection."))
+				visible_message(span_notice("[src] glows with a warm, protective light."))
+			if("Curse Non-Believers")
+				active_mode = "debuff"
+				to_chat(G, span_notice("The shrine now curses non-believers with dread."))
+				visible_message(span_warning("[src] emanates an oppressive, dark aura."))
+			if("Deactivate")
+				active_mode = null
+				to_chat(G, span_notice("The shrine's aura fades."))
+				visible_message(span_notice("[src]'s glow fades to nothing."))
+		mode_cooldown = world.time + mode_cooldown_time
 		return
-	var/datum/antagonist/hog_cultist/C = user.mind?.has_antag_datum(/datum/antagonist/hog_cultist)
-	if(!C || C?.cult_team?.team_colour != deity?.team_colour)
-		to_chat(user, span_warning("This shrine belongs to a different deity!"))
+
+	if(ishuman(user) && IS_HOG_CULTIST(user))
+		var/datum/antagonist/hog_cultist/C = user.mind?.has_antag_datum(/datum/antagonist/hog_cultist)
+		if(!C || C?.cult_team?.team_colour != deity?.team_colour)
+			to_chat(user, span_warning("This shrine belongs to a different deity!"))
+			return
+		if(prayer_cooldown > world.time)
+			to_chat(user, span_warning("The shrine has already received prayers recently. Wait [round((prayer_cooldown - world.time)/10)] seconds."))
+			return
+		user.visible_message(span_notice("[user] kneels before the shrine and begins to pray..."), span_notice("You kneel before the shrine and begin to pray..."))
+		if(!do_after(user, 30 SECONDS, src))
+			return
+		if(!deity)
+			return
+		deity.add_faith(5)
+		prayer_cooldown = world.time + prayer_cooldown_time
+		to_chat(user, span_notice("Your prayers have been heard! Your deity gains faith."))
+		to_chat(deity, span_notice("[user]'s prayers at a shrine grant you 5 faith."))
 		return
-	user.visible_message(span_notice("[user] kneels before the shrine and begins to pray..."), span_notice("You kneel before the shrine and begin to pray..."))
-	if(!do_after(user, 30 SECONDS, src))
-		return
-	if(!deity)
-		return
-	deity.add_faith(5)
-	to_chat(user, span_notice("Your prayers have been heard! Your deity gains faith."))
-	to_chat(deity, span_notice("[user]'s prayers at a shrine grant you 5 faith."))
+
+	to_chat(user, span_warning("You don't know how to use this!"))
 
 
-//WARD
-
-/obj/structure/divine/ward
-	name = "ward"
-	desc = "A protective ward that damages non-believers nearby."
-	icon_state = "ward"
-	max_integrity = 100
-	is_trap = TRUE
+// ============================================================
+// FOUNTAIN
+// ============================================================
 
 /obj/structure/divine/fountain
 	name = "fountain"
 	desc = "A blessed fountain that heals nearby followers."
 	icon_state = "fountain"
 	max_integrity = 200
+
+
+// ============================================================
+// CONDUIT
+// ============================================================
 
 /obj/structure/divine/conduit
 	name = "conduit"
@@ -467,7 +538,229 @@
 	max_integrity = 150
 
 
-//CONSTRUCTION HOLDER
+// ============================================================
+// MAGIC MIRROR (MIRROR ACTIONS)
+// ============================================================
+
+/datum/action/mirror_cancel
+	name = "Stop Scrying"
+	desc = "Return your vision to your body."
+	button_icon = 'icons/obj/hand_of_god_structures.dmi'
+	button_icon_state = "God-Speak"
+	background_icon_state = "God-Speak"
+	var/obj/structure/divine/magic_mirror/mirror
+
+/datum/action/mirror_cancel/New(obj/structure/divine/magic_mirror/M)
+	. = ..()
+	mirror = M
+
+/datum/action/mirror_cancel/Trigger(trigger_flags)
+	if(!mirror)
+		return
+	mirror.stop_scrying()
+	to_chat(owner, span_notice("You stop scrying."))
+
+/datum/action/mirror_trap_soul
+	name = "Trap Soul"
+	desc = "Attempt to trap the scryed target's soul in the mirror. 20 second chant."
+	button_icon = 'icons/obj/hand_of_god_structures.dmi'
+	button_icon_state = "soul_trap"
+	background_icon_state = "soul_trap"
+	var/obj/structure/divine/magic_mirror/mirror
+
+/datum/action/mirror_trap_soul/New(obj/structure/divine/magic_mirror/M)
+	. = ..()
+	mirror = M
+
+/datum/action/mirror_trap_soul/Trigger(trigger_flags)
+	if(!mirror)
+		return
+	if(!mirror.scry_target || mirror.scry_target.stat == DEAD)
+		to_chat(owner, span_warning("Your target is no longer valid!"))
+		return
+	if(mirror.trap_cooldown > world.time)
+		to_chat(owner, span_warning("The mirror's trapping power hasn't recharged yet."))
+		return
+	mirror.attempt_soul_trap(owner)
+
+
+// ============================================================
+// MAGIC MIRROR
+// ============================================================
+
+/obj/structure/divine/magic_mirror
+	name = "magic mirror"
+	desc = "A divine mirror that allows users to scry on enemies and trap souls within. It seems to hold a deeper purpose..."
+	icon = 'icons/obj/hand_of_god_secondary.dmi'
+	icon_state = "mirror_mirror"
+	max_integrity = 200
+	var/mob/living/carbon/human/scry_target = null
+	var/mob/living/scrying_user = null
+	var/cooldown = 0
+	var/cooldown_time = 5 SECONDS
+	var/trap_cooldown = 0
+	var/trap_cooldown_time = 15 MINUTES
+	var/scrying = FALSE
+	var/list/trapped_souls = list()
+	var/datum/mind/selected_vessel = null
+
+/obj/structure/divine/magic_mirror/update_icon()
+	return
+
+/obj/structure/divine/magic_mirror/Destroy()
+	release_all_souls()
+	if(scrying)
+		stop_scrying()
+	selected_vessel = null
+	scrying_user = null
+	return ..()
+
+/obj/structure/divine/magic_mirror/attack_hand(mob/user)
+	if(!ishuman(user) && !IS_HOG_GOD(user))
+		to_chat(user, span_warning("You don't know how to use this!"))
+		return
+
+	if(IS_HOG_GOD(user))
+		var/mob/living/simple_animal/god/G = user
+		if(G.team_colour != deity?.team_colour)
+			to_chat(user, span_warning("The rival deity's mirror rejects you!"))
+			return
+		god_interact(G)
+		return
+
+	if(scrying)
+		return
+
+	var/list/possible = list()
+	for(var/mob/living/carbon/human/H in GLOB.alive_mob_list)
+		if(H == user)
+			continue
+		if(IS_HOG_GOD(H))
+			continue
+		if(H.mind in trapped_souls)
+			continue
+		possible |= H
+	if(!length(possible))
+		to_chat(user, span_warning("No valid targets found!"))
+		return
+
+	scry_target = tgui_input_list(user, "Select a target to scry upon:", "Magic Mirror", sort_names(possible))
+	if(!scry_target)
+		return
+	start_scrying(user)
+
+/obj/structure/divine/magic_mirror/proc/god_interact(mob/living/simple_animal/god/G)
+	var/list/possible = list()
+	for(var/mob/living/carbon/human/H in GLOB.alive_mob_list)
+		if(IS_HOG_CULTIST(H))
+			continue
+		if(IS_HOG_GOD(H))
+			continue
+		if(H.mind in trapped_souls)
+			continue
+		possible |= H
+
+	if(!length(possible))
+		to_chat(G, span_warning("No suitable vessels found for possession."))
+		return
+
+	var/mob/living/carbon/human/vessel = tgui_input_list(G, "Select a vessel for future possession:", "Find Vessel", sort_names(possible))
+	if(!vessel)
+		return
+
+	selected_vessel = vessel.mind
+	to_chat(G, span_notice("You have marked [vessel] as a potential vessel for possession."))
+	to_chat(vessel, span_warning("You feel an ominous divine gaze fall upon you..."))
+
+/obj/structure/divine/magic_mirror/proc/start_scrying(mob/user)
+	if(!scry_target)
+		return
+	scrying = TRUE
+	scrying_user = user
+	user.visible_message(span_notice("[user] stares into the mirror, their eyes glazing over..."), span_notice("You gaze into the mirror and see through [scry_target]'s eyes..."))
+	user.set_machine(src)
+	user.reset_perspective(scry_target)
+	to_chat(scry_target, span_warning("You feel an unsettling presence watching you from somewhere..."))
+	GiveMirrorHint(scry_target, user)
+
+	var/datum/action/mirror_cancel/cancel_action = new(src)
+	cancel_action.Grant(user)
+	var/datum/action/mirror_trap_soul/trap_action = new(src)
+	trap_action.Grant(user)
+
+	addtimer(CALLBACK(src, PROC_REF(auto_stop_scrying), user), 30 SECONDS)
+
+/obj/structure/divine/magic_mirror/proc/stop_scrying()
+	scrying = FALSE
+	scry_target = null
+	if(scrying_user)
+		var/datum/action/mirror_cancel/cancel_action = locate() in scrying_user.actions
+		if(cancel_action)
+			cancel_action.Remove(scrying_user)
+		var/datum/action/mirror_trap_soul/trap_action = locate() in scrying_user.actions
+		if(trap_action)
+			trap_action.Remove(scrying_user)
+		if(scrying_user.machine == src)
+			scrying_user.reset_perspective(null)
+			scrying_user.unset_machine()
+		scrying_user = null
+
+/obj/structure/divine/magic_mirror/proc/auto_stop_scrying(mob/user)
+	if(scrying && scrying_user == user)
+		stop_scrying()
+		to_chat(user, span_notice("The mirror's vision fades..."))
+
+/obj/structure/divine/magic_mirror/proc/attempt_soul_trap(mob/user)
+	if(!scry_target || scry_target.stat == DEAD)
+		return
+	user.visible_message(span_warning("[user] begins chanting as the mirror's surface swirls violently!"), span_danger("You begin trapping [scry_target]'s soul in the mirror..."))
+	to_chat(scry_target, span_userdanger("You feel an overwhelming force trying to claim your soul!"))
+	GiveMirrorHint(scry_target, user, force=TRUE)
+
+	if(!do_after(user, 20 SECONDS, src))
+		to_chat(user, span_warning("The soul trap was interrupted!"))
+		return
+
+	if(!scry_target || scry_target.stat == DEAD)
+		to_chat(user, span_warning("The target is no longer valid!"))
+		return
+
+	var/mob/living/carbon/human/victim = scry_target
+	scry_target = null
+	stop_scrying()
+
+	trapped_souls += victim.mind
+	ADD_TRAIT(victim, TRAIT_NO_SOUL, REF(src))
+
+	victim.visible_message(span_danger("[victim] shudders as an eerie light leaves their body and flies into the mirror!"), span_userdanger("You feel a piece of yourself being torn away and trapped within a mirror! If you die... you may not return."))
+
+	trap_cooldown = world.time + trap_cooldown_time
+	to_chat(user, span_notice("[victim]'s soul is now bound to the mirror! If they die, they cannot be revived until the mirror is destroyed."))
+	to_chat(deity, span_notice("[victim]'s soul has been trapped in a magic mirror by [user]."))
+
+	if(selected_vessel == victim.mind)
+		selected_vessel = null
+		to_chat(deity, span_warning("[victim] was your chosen vessel — their soul is now trapped and unusable for possession."))
+
+/obj/structure/divine/magic_mirror/proc/release_all_souls()
+	for(var/datum/mind/M in trapped_souls)
+		if(M.current)
+			REMOVE_TRAIT(M.current, TRAIT_NO_SOUL, REF(src))
+			to_chat(M.current, span_userdanger("You feel your soul return to you as the mirror shatters! You can be revived again."))
+	trapped_souls = list()
+
+/obj/structure/divine/magic_mirror/proc/GiveMirrorHint(mob/victim, mob/user, force=FALSE)
+	if(prob(60) || force)
+		var/way = dir2text(get_dir(victim, get_turf(src)))
+		to_chat(victim, span_warning("You feel a dark presence watching you from the [way]..."))
+	if(prob(30) || force)
+		var/area/A = get_area(src)
+		to_chat(victim, span_warning("The presence feels like it's coming from [A.name]..."))
+
+
+// ============================================================
+// CONSTRUCTION HOLDER
+// ============================================================
 
 /obj/structure/divine/construction_holder
 	name = "unfinished structure"
