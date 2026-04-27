@@ -73,10 +73,10 @@
 
 	var/msg = tgui_input_text(our_god, "What message to broadcast through [target]?", "Divine Transmission", "", MAX_MESSAGE_LEN, multiline = TRUE)
 	if(!msg)
-		return FALSE // No faith spent if cancelled
+		return FALSE
 
 	if(!our_god.spend_faith(35))
-		return FALSE // Not enough faith
+		return FALSE
 
 	target.say(msg, forced = "divine thought")
 	to_chat(our_god, span_notice("Your voice echoes through [target]."))
