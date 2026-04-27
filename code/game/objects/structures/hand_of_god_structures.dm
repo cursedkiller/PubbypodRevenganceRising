@@ -420,12 +420,12 @@
 				H.physiology?.damage_resistance = max(H.physiology.damage_resistance, 10)
 				H.physiology?.stamina_mod = max(H.physiology.stamina_mod, 0.8)
 				H.physiology?.burn_mod = max(H.physiology.burn_mod, 0.8)
-				H.add_mood_event("shrine_blessing", /datum/mood_event/shrine_blessed)
+				H.mob_mood?.add_mood_event("shrine_blessing", /datum/mood_event/shrine_blessed)
 				continue
 		H.add_movespeed_modifier(/datum/movespeed_modifier/shrine_debuff)
 		H.physiology?.damage_resistance = min(H.physiology.damage_resistance, -10)
 		H.physiology?.stamina_mod = min(H.physiology.stamina_mod, 1.2)
-		H.add_mood_event("shrine_dread", /datum/mood_event/shrine_dread)
+		H.mob_mood?.add_mood_event("shrine_dread", /datum/mood_event/shrine_dread)
 
 /obj/structure/divine/shrine/attack_hand(mob/user)
 	if(!ishuman(user) || !IS_HOG_CULTIST(user))
