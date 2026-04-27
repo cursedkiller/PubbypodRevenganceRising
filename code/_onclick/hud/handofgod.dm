@@ -1,6 +1,7 @@
 /atom/movable/screen/hog
 	icon = 'icons/obj/hand_of_god_structures.dmi'
 	mouse_over_pointer = MOUSE_HAND_POINTER
+	mouse_opacity = MOUSE_OPACITY_ICON
 
 /atom/movable/screen/hog/MouseEntered(location, control, params)
 	. = ..()
@@ -40,6 +41,7 @@
 	icon_state = "God-Speak"
 	name = "Divine Transmission"
 	desc = "Speak through a target, making them say your words aloud. Click again to cancel."
+	mouse_opacity = MOUSE_OPACITY_ICON
 
 /atom/movable/screen/hog/GodSpeak/Click()
 	if(istype(usr, /mob/living/simple_animal/god))
@@ -48,11 +50,12 @@
 			deity.transmission_spell = new(deity)
 			deity.transmission_spell.Grant(deity)
 		var/datum/action/spell/pointed/divine_transmission/DT = deity.transmission_spell
-		if(DT.active)
+		if(deity.transmitting)
 			DT.unset_click_ability(deity)
-			DT.active = FALSE
+			deity.transmitting = FALSE
 		else
 			DT.set_click_ability(deity)
+			deity.transmitting = TRUE
 
 /atom/movable/screen/hog/BuildStructure
 	icon_state = "Spawn Structure"
