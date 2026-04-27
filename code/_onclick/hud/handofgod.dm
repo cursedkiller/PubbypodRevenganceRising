@@ -50,6 +50,7 @@
 		var/datum/action/spell/pointed/divine_transmission/DT = deity.transmission_spell
 		if(DT.active)
 			DT.unset_click_ability(deity)
+			DT.active = FALSE
 		else
 			DT.set_click_ability(deity)
 
