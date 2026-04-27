@@ -35,6 +35,22 @@
 			deity.forceMove(get_turf(target))
 			to_chat(deity, span_notice("You shift your gaze to [target]."))
 
+/atom/movable/screen/hog/GodSpeak
+	icon = 'icons/obj/hand_of_god_structures.dmi'
+	icon_state = "God-speak"
+	name = "Divine Transmission"
+	desc = "Speak through a target, making them say your words aloud. Click again to cancel."
+
+/atom/movable/screen/hog/GodSpeak/Click()
+	if(istype(usr, /mob/living/simple_animal/god))
+		var/mob/living/simple_animal/god/deity = usr
+		if(!deity.transmission_spell)
+			return
+		if(deity.transmission_spell.active)
+			deity.transmission_spell.unset_click_ability(deity)
+		else
+			deity.transmission_spell.set_click_ability(deity)
+
 /atom/movable/screen/hog/BuildStructure
 	icon_state = "Spawn Structure"
 	name = "Spawn Structure"
@@ -131,6 +147,10 @@
 	infodisplay += deity_follower_display
 
 	var/atom/movable/screen/hog/using
+
+	using = new /atom/movable/screen/hog/GodSpeak(null, src)
+	using.screen_loc = ui_inventory
+	static_inventory += using
 
 	using = new /atom/movable/screen/hog/PlaceNexus(null, src)
 	using.screen_loc = ui_zonesel
