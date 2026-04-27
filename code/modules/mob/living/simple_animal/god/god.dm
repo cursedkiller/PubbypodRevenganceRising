@@ -72,6 +72,7 @@
 	return ..()
 
 /mob/living/simple_animal/god/ClickOn(atom/A, params)
+	// Handle defense pylon toggling directly since we're on the ghost plane
 	if(istype(A, /obj/structure/divine/defensepylon))
 		var/obj/structure/divine/defensepylon/P = A
 		if(!P.deity)
@@ -87,6 +88,17 @@
 		else
 			P.visible_message(span_notice("[P] powers down."))
 		P.update_icon()
+		return
+	// Handle shrine interaction for the deity
+	if(istype(A, /obj/structure/divine/shrine))
+		var/obj/structure/divine/shrine/S = A
+		if(!S.deity)
+			to_chat(src, span_warning("This shrine is not connected to a deity!"))
+			return
+		if(team_colour != S.deity.team_colour)
+			to_chat(src, span_warning("This shrine belongs to a different deity!"))
+			return
+		S.attack_hand(src)
 		return
 	return ..()
 
@@ -248,10 +260,10 @@
 		"Power Pylon" = list(/obj/structure/divine/powerpylon, "powerpylon-[icon_suffix]", "Increases your Divine presence and bolsters the strength of your miracles.", "10 Iron", FALSE),
 		"Translocator" = list(/obj/structure/divine/translocator, "translocator-[icon_suffix]", "Link portals together to create a gateway between locations.", "10 Iron", FALSE),
 		"Forge" = list(/obj/structure/divine/forge, "forge-[icon_suffix]", "Permit mortals to manipulate ichor to forge weapons of war.", "10 Iron", FALSE),
-		"Sacrifice Altar" = list(/obj/structure/divine/sacrificealtar, "sacrificealtar-[icon_suffix]", "Trade blood for faith or rival souls for boons.", "25 Iron, 10 Glass", FALSE),
-		"Conversion Altar" = list(/obj/structure/divine/convertaltar, "convertaltar-[icon_suffix]", "Convert the masses to your whims, as long as their minds are willing to learn.", "25 Rods, 10 Glass", !free_conversion_altar_used),
+		"Sacrifice Altar" = list(/obj/structure/divine/sacrificealtar, "sacrifice-altar-[icon_suffix]", "Trade blood for faith or rival souls for boons.", "25 Iron, 10 Glass", FALSE),
+		"Conversion Altar" = list(/obj/structure/divine/convertaltar, "convert-altar-[icon_suffix]", "Convert the masses to your whims, as long as their minds are willing to learn.", "25 Rods, 10 Glass", !free_conversion_altar_used),
 		"Shrine" = list(/obj/structure/divine/shrine, "Shrine-[icon_suffix]", "An idol to strike terror or awe of your presence.", "25 Iron", FALSE),
-		"Fountain" = list(/obj/structure/divine/fountain, "fountain-[icon_suffix]", "Produces the waters of life and death to cure ailments or deliver them.", "10 Iron", FALSE),
+		"Fountain" = list(/obj/structure/divine/fountain, "fountain-[icon_suffix]-water", "Produces the waters of life and death to cure ailments or deliver them.", "10 Iron", FALSE),
 		"Conduit" = list(/obj/structure/divine/conduit, "conduit-[icon_suffix]", "Increases faith generation and expands your domain vision.", "15 Rods, 10 Iron", FALSE),
 		"Magic Mirror" = list(/obj/structure/divine/magic_mirror, "mirror_mirror", "Scry on enemies to locate ideal vessels.", "5 Iron, 30 Glass, 1 Lesser Gem", FALSE, "icons/obj/hand_of_god_secondary.dmi"),
 		"Defense Pylon" = list(/obj/structure/divine/defensepylon, "defensepylon-[icon_suffix]", "Automatically fires upon non-believers. Toggle on/off with Left Click.", "10 Iron", !free_pylon_used),
@@ -583,6 +595,40 @@
 	to_chat(src, span_notice("You are a deity!"))
 	to_chat(src, "You are worshipped by a cult. Use the buttons on your HUD to interact with the world.")
 	to_chat(src, "Use Divine Transmission to speak through a mortal vessel. Use the Navigate button to jump to your nexus or followers.")
+
+/mob/verb/spawn_all_structures()
+	set name = "Spawn All Structures (TESTING)"
+	set category = "Admin"
+
+	if(!check_rights(R_ADMIN))
+		return
+
+	if(!istype(src, /mob/living/simple_animal/god))
+		to_chat(src, span_warning("Only deities can use this!"))
+		return
+
+	var/mob/living/simple_animal/god/G = src
+	var/list/structure_types = list(
+		/obj/structure/divine/powerpylon,
+		/obj/structure/divine/translocator,
+		/obj/structure/divine/forge,
+		/obj/structure/divine/sacrificealtar,
+		/obj/structure/divine/convertaltar,
+		/obj/structure/divine/shrine,
+		/obj/structure/divine/fountain,
+		/obj/structure/divine/conduit,
+		/obj/structure/divine/magic_mirror,
+		/obj/structure/divine/defensepylon,
+	)
+
+	var/turf/T = get_turf(G)
+	for(var/path in structure_types)
+		var/obj/structure/divine/S = new path(T)
+		S.assign_deity(G)
+		T = get_step(T, EAST)
+
+	to_chat(G, span_notice("All structures spawned! REMOVE THIS VERB BEFORE SHIPPING."))
+	message_admins("[key_name_admin(G)] used Spawn All Structures (TESTING). REMIND THEM TO DISABLE THIS.")
 
 /mob/verb/become_red_god()
 	set name = "Become Red God"
