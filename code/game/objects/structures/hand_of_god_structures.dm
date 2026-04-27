@@ -100,6 +100,22 @@
 	STOP_PROCESSING(SSobj, src)
 	return ..()
 
+/obj/structure/divine/defensepylon/attack_hand(mob/user)
+	if(!IS_HOG_GOD(user))
+		to_chat(user, span_warning("Only your deity can control this!"))
+		return
+	var/mob/living/simple_animal/god/G = user
+	if(G.team_colour != deity?.team_colour)
+		to_chat(user, span_warning("This pylon belongs to a different deity!"))
+		return
+	active = !active
+	attacking = FALSE
+	if(active)
+		visible_message(span_notice("[src] hums to life."))
+	else
+		visible_message(span_notice("[src] powers down."))
+	update_icon()
+
 /obj/structure/divine/defensepylon/process(delta_time)
 	if(!deity || !active || attacking)
 		return
@@ -451,7 +467,23 @@
 			SEND_SIGNAL(H, COMSIG_ADD_MOOD_EVENT, "shrine_dread", /datum/mood_event/shrine_dread)
 
 /obj/structure/divine/shrine/attack_hand(mob/user)
-	// Cultist prayer
+	if(istype(user, /mob/living/simple_animal/god))
+		var/mob/living/simple_animal/god/G = user
+		if(G.team_colour != deity?.team_colour)
+			to_chat(user, span_warning("This shrine belongs to a different deity!"))
+			return
+		if(mode_cooldown > world.time)
+			to_chat(G, span_warning("The shrine's power is still settling. Wait [round((mode_cooldown - world.time)/10)] seconds."))
+			return
+		if(active_mode == "buff")
+			active_mode = "debuff"
+			visible_message(span_warning("[src]'s eyes darken as an oppressive aura emanates from it, weighing down the souls of the wicked."))
+		else
+			active_mode = "buff"
+			visible_message(span_notice("[src]'s eyes glow warmly as a protective divine light radiates outward."))
+		mode_cooldown = world.time + mode_cooldown_time
+		return
+
 	if(ishuman(user) && IS_HOG_CULTIST(user))
 		var/datum/antagonist/hog_cultist/C = user.mind?.has_antag_datum(/datum/antagonist/hog_cultist)
 		if(!C || C?.cult_team?.team_colour != deity?.team_colour)
