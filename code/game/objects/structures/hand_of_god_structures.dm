@@ -34,7 +34,7 @@
 	set_light(2)
 
 
-//NEXUS rah!!!//
+//NEXUS
 
 /obj/structure/divine/nexus
 	name = "nexus"
@@ -75,10 +75,7 @@
 	set_light(4)
 
 
-//Defense Pylon rah!!!//
-
-
-//Defense Pylon rah!!!//
+//DEFENSE PYLON
 
 /obj/structure/divine/defensepylon
 	name = "defense pylon"
@@ -186,7 +183,8 @@
 		var/mob/living/carbon/C = target
 		C.adjustFireLoss(5)
 
-//Power Pylon rah!!!//
+
+//POWER PYLON
 
 /obj/structure/divine/powerpylon
 	name = "power pylon"
@@ -205,6 +203,19 @@
 	desc = "Creates divine equipment for followers."
 	icon_state = "forge"
 	max_integrity = 300
+
+/obj/structure/divine/magic_mirror
+	name = "magic mirror"
+	desc = "A divine mirror that allows followers to scry on their enemies and find the most appropriate vessel."
+	icon = 'icons/obj/hand_of_god_secondary.dmi'
+	icon_state = "mirror_mirror"
+	max_integrity = 200
+
+/obj/structure/divine/magic_mirror/update_icon()
+	if(!deity)
+		return
+	icon = 'icons/obj/hand_of_god_secondary.dmi'
+	icon_state = "mirror_mirror"
 
 /obj/structure/divine/convertaltar
 	name = "conversion altar"
@@ -362,11 +373,79 @@
 	to_chat(user, span_notice("A lesser gem materializes."))
 	sacrificing = FALSE
 
+
+//SHRINE
+
+/datum/movespeed_modifier/shrine_buff
+	multiplicative_slowdown = -0.5
+
+/datum/movespeed_modifier/shrine_debuff
+	multiplicative_slowdown = 0.5
+
+/datum/mood_event/shrine_blessed
+	description = "I feel the presence of my deity protecting me.\n"
+	mood_change = 5
+	timeout = 10 SECONDS
+
+/datum/mood_event/shrine_dread
+	description = "An oppressive divine presence weighs on my soul...\n"
+	mood_change = -5
+	timeout = 10 SECONDS
+
 /obj/structure/divine/shrine
 	name = "shrine"
-	desc = "A holy shrine that boosts nearby followers."
+	desc = "A holy shrine that bolsters the faithful with divine protection and unnerves the wicked with oppressive dread."
 	icon_state = "Shrine"
 	max_integrity = 150
+	var/aura_range = 5
+
+/obj/structure/divine/shrine/Initialize(mapload)
+	. = ..()
+	START_PROCESSING(SSobj, src)
+
+/obj/structure/divine/shrine/Destroy()
+	STOP_PROCESSING(SSobj, src)
+	return ..()
+
+/obj/structure/divine/shrine/process(delta_time)
+	if(!deity)
+		return
+	for(var/mob/living/carbon/human/H in range(aura_range, src))
+		if(H.stat == DEAD)
+			continue
+		if(IS_HOG_CULTIST(H))
+			var/datum/antagonist/hog_cultist/C = H.mind?.has_antag_datum(/datum/antagonist/hog_cultist)
+			if(C?.cult_team?.team_colour == deity.team_colour)
+				H.add_movespeed_modifier(/datum/movespeed_modifier/shrine_buff)
+				H.physiology?.damage_resistance = max(H.physiology.damage_resistance, 10)
+				H.physiology?.stamina_mod = max(H.physiology.stamina_mod, 0.8)
+				H.physiology?.burn_mod = max(H.physiology.burn_mod, 0.8)
+				H.add_mood_event("shrine_blessing", /datum/mood_event/shrine_blessed)
+				continue
+		H.add_movespeed_modifier(/datum/movespeed_modifier/shrine_debuff)
+		H.physiology?.damage_resistance = min(H.physiology.damage_resistance, -10)
+		H.physiology?.stamina_mod = min(H.physiology.stamina_mod, 1.2)
+		H.add_mood_event("shrine_dread", /datum/mood_event/shrine_dread)
+
+/obj/structure/divine/shrine/attack_hand(mob/user)
+	if(!ishuman(user) || !IS_HOG_CULTIST(user))
+		to_chat(user, span_warning("You don't know how to use this!"))
+		return
+	var/datum/antagonist/hog_cultist/C = user.mind?.has_antag_datum(/datum/antagonist/hog_cultist)
+	if(!C || C?.cult_team?.team_colour != deity?.team_colour)
+		to_chat(user, span_warning("This shrine belongs to a different deity!"))
+		return
+	user.visible_message(span_notice("[user] kneels before the shrine and begins to pray..."), span_notice("You kneel before the shrine and begin to pray..."))
+	if(!do_after(user, 30 SECONDS, src))
+		return
+	if(!deity)
+		return
+	deity.add_faith(5)
+	to_chat(user, span_notice("Your prayers have been heard! Your deity gains faith."))
+	to_chat(deity, span_notice("[user]'s prayers at a shrine grant you 5 faith."))
+
+
+//WARD
 
 /obj/structure/divine/ward
 	name = "ward"
@@ -383,15 +462,12 @@
 
 /obj/structure/divine/conduit
 	name = "conduit"
-	desc = "Channels divine energy, increasing faith generation."
+	desc = "Channels divine energy, increasing faith generation and expanding the god's domain."
 	icon_state = "conduit"
 	max_integrity = 150
 
-/obj/structure/divine/lazarus
-	name = "lazarus"
-	desc = "Can revive a fallen follower once."
-	icon_state = "lazarus"
-	max_integrity = 100
+
+//CONSTRUCTION HOLDER
 
 /obj/structure/divine/construction_holder
 	name = "unfinished structure"
@@ -405,9 +481,11 @@
 	var/iron_required = 0
 	var/glass_required = 0
 	var/rods_required = 0
+	var/gem_required = 0
 	var/iron_inserted = 0
 	var/glass_inserted = 0
 	var/rods_inserted = 0
+	var/gem_inserted = 0
 
 /obj/structure/divine/construction_holder/proc/setup_construction(obj/structure/divine/build_path)
 	build_type = build_path
@@ -422,8 +500,18 @@
 		if(/obj/structure/divine/defensepylon)
 			iron_required = 25
 			glass_required = 5
+		if(/obj/structure/divine/magic_mirror)
+			iron_required = 5
+			glass_required = 30
+			gem_required = 1
+		if(/obj/structure/divine/conduit)
+			iron_required = 10
+			rods_required = 15
+		if(/obj/structure/divine/shrine)
+			iron_required = 25
 		else
 			iron_required = 10
+
 /obj/structure/divine/construction_holder/attackby(obj/item/I, mob/user, params)
 	if(istype(I, /obj/item/stack/sheet/iron))
 		var/obj/item/stack/sheet/iron/S = I
@@ -461,10 +549,22 @@
 		to_chat(user, span_notice("You add [to_use] rods. ([rods_inserted]/[rods_required])"))
 		check_completion()
 		return
+	if(istype(I, /obj/item/stack/sheet/lessergem))
+		var/obj/item/stack/sheet/lessergem/G = I
+		var/needed = gem_required - gem_inserted
+		if(needed <= 0)
+			to_chat(user, span_warning("It doesn't need more gems!"))
+			return
+		var/to_use = min(G.amount, needed)
+		G.use(to_use)
+		gem_inserted += to_use
+		to_chat(user, span_notice("You add [to_use] lesser gem. ([gem_inserted]/[gem_required])"))
+		check_completion()
+		return
 	return ..()
 
 /obj/structure/divine/construction_holder/proc/check_completion()
-	if(iron_inserted >= iron_required && glass_inserted >= glass_required && rods_inserted >= rods_required)
+	if(iron_inserted >= iron_required && glass_inserted >= glass_required && rods_inserted >= rods_required && gem_inserted >= gem_required)
 		finish_construction()
 
 /obj/structure/divine/construction_holder/proc/finish_construction()
