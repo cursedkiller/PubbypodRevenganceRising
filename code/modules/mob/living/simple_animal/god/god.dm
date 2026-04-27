@@ -43,11 +43,8 @@
 	var/alive_followers = 0
 	var/free_pylon_used = FALSE
 	var/free_conversion_altar_used = FALSE
-	/// Reference to the divine transmission spell
 	var/datum/action/spell/pointed/divine_transmission/transmission_spell = null
-	/// Whether the deity has chosen a name yet
 	var/name_chosen = FALSE
-	/// Whether the deity is currently in divine transmission targeting mode
 	var/transmitting = FALSE
 
 /mob/living/simple_animal/god/Initialize(mapload)
@@ -72,7 +69,7 @@
 	return ..()
 
 /mob/living/simple_animal/god/ClickOn(atom/A, params)
-	// Handle defense pylon toggling directly since we're on the ghost plane
+	// Handle defense pylon toggling
 	if(istype(A, /obj/structure/divine/defensepylon))
 		var/obj/structure/divine/defensepylon/P = A
 		if(!P.deity)
@@ -89,7 +86,7 @@
 			P.visible_message(span_notice("[P] powers down."))
 		P.update_icon()
 		return
-	// Handle shrine interaction for the deity
+	// Handle shrine toggling — same pattern as pylon
 	if(istype(A, /obj/structure/divine/shrine))
 		var/obj/structure/divine/shrine/S = A
 		if(!S.deity)
@@ -98,7 +95,16 @@
 		if(team_colour != S.deity.team_colour)
 			to_chat(src, span_warning("This shrine belongs to a different deity!"))
 			return
-		S.attack_hand(src)
+		if(S.mode_cooldown > world.time)
+			to_chat(src, span_warning("The shrine's power is still settling. Wait [round((S.mode_cooldown - world.time)/10)] seconds."))
+			return
+		if(S.active_mode == "buff")
+			S.active_mode = "debuff"
+			S.visible_message(span_warning("[S]'s eyes darken as an oppressive aura emanates from it, weighing down the souls of the wicked."))
+		else
+			S.active_mode = "buff"
+			S.visible_message(span_notice("[S]'s eyes glow warmly as a protective divine light radiates outward."))
+		S.mode_cooldown = world.time + S.mode_cooldown_time
 		return
 	return ..()
 
