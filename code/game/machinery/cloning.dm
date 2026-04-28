@@ -5,6 +5,7 @@
 
 #define CLONE_INITIAL_DAMAGE     150    //Clones in clonepods start with 150 cloneloss damage and 150 brainloss damage, thats just logical
 #define MINIMUM_HEAL_LEVEL 40
+#define ERROR_SOUL_TRAPPED "Soul has been trapped."
 
 #define SPEAK(message) radio.talk_into(src, message, radio_channel)
 
@@ -215,6 +216,8 @@ SCREENTIP_ATTACK_HAND(/obj/machinery/clonepod, "Examine")
 				return ERROR_SUICIDED_BODY
 		if(clonemind.no_cloning_at_all) // nope.
 			return ERROR_UNCLONABLE
+		if(clonemind.current && HAS_TRAIT(clonemind.current, TRAIT_SOUL_TRAPPED))
+			return ERROR_SOUL_TRAPPED
 		current_insurance = insurance
 	attempting = TRUE //One at a time!!
 	countdown.start()
@@ -341,13 +344,13 @@ SCREENTIP_ATTACK_HAND(/obj/machinery/clonepod, "Examine")
 						fair_market_price = round(fair_market_price/length(dept_list))
 						for(var/datum/bank_account/department/D in dept_list)
 							D.adjust_money(fair_market_price)
-		if(mob_occupant && mob_occupant.stat == DEAD || mob_occupant.suiciding)  //Autoeject corpses and suiciding dudes.
+		if(mob_occupant && mob_occupant.stat == DEAD || mob_occupant.suiciding || HAS_TRAIT(mob_occupant, TRAIT_SOUL_TRAPPED))  //Autoeject corpses and suiciding dudes.
 			connected_message("Clone Rejected: Deceased.")
 			if(internal_radio)
 				SPEAK("The cloning of [mob_occupant.real_name] has been \
 					aborted due to unrecoverable tissue failure.")
 			go_out()
-			log_cloning("[key_name(mob_occupant)] ejected from [src] at [AREACOORD(src)] after suiciding.")
+			log_cloning("[key_name(mob_occupant)] ejected from [src] at [AREACOORD(src)] after suiciding or soul trapped.")
 
 		else if(mob_occupant && mob_occupant.cloneloss > (100 - heal_level))
 			mob_occupant.Unconscious(80)
@@ -402,6 +405,7 @@ SCREENTIP_ATTACK_HAND(/obj/machinery/clonepod, "Examine")
 			icon_state = "pod_0"
 		use_power(200)
 
+// Rest of the file remains the same (buffer handler, attackby, etc.)
 REGISTER_BUFFER_HANDLER(/obj/machinery/clonepod)
 
 DEFINE_BUFFER_HANDLER(/obj/machinery/clonepod)
