@@ -1,3 +1,13 @@
+// Soul Trapped system - prevents revival and shows custom examine text
+/mob/living/proc/set_soul_trapped()
+	ADD_TRAIT(src, TRAIT_SOUL_TRAPPED, REF(src))
+
+/mob/living/proc/clear_soul_trapped()
+	REMOVE_TRAIT(src, TRAIT_SOUL_TRAPPED, REF(src))
+
+/mob/living/proc/is_soul_trapped()
+	return HAS_TRAIT(src, TRAIT_SOUL_TRAPPED)
+
 /obj/structure/divine
 	name = "divine structure"
 	desc = "A structure built by the followers of a deity."
@@ -37,7 +47,6 @@
 // ============================================================
 // NEXUS
 // ============================================================
-
 /obj/structure/divine/nexus
 	name = "nexus"
 	desc = "The anchor of a deity in this realm."
@@ -80,7 +89,6 @@
 // ============================================================
 // DEFENSE PYLON
 // ============================================================
-
 /obj/structure/divine/defensepylon
 	name = "defense pylon"
 	desc = "A defensive structure that attacks non-believers. Click to toggle on/off."
@@ -175,7 +183,6 @@
 // ============================================================
 // POWER PYLON
 // ============================================================
-
 /obj/structure/divine/powerpylon
 	name = "power pylon"
 	desc = "Generates faith for your deity."
@@ -186,7 +193,6 @@
 // ============================================================
 // TRANSLOCATOR
 // ============================================================
-
 /obj/structure/divine/translocator
 	name = "translocator"
 	desc = "Allows followers to teleport between translocators."
@@ -197,7 +203,6 @@
 // ============================================================
 // FORGE
 // ============================================================
-
 /obj/structure/divine/forge
 	name = "forge"
 	desc = "Creates divine equipment for followers."
@@ -208,11 +213,10 @@
 // ============================================================
 // CONVERSION ALTAR
 // ============================================================
-
 /obj/structure/divine/convertaltar
 	name = "conversion altar"
 	desc = "Used to convert crew members and rival cultists to your deity. Drag a target onto it to begin."
-	icon_state = "convert-altar"
+	icon_state = "convertaltar"
 	max_integrity = 250
 	var/converting = FALSE
 
@@ -293,11 +297,10 @@
 // ============================================================
 // SACRIFICE ALTAR
 // ============================================================
-
 /obj/structure/divine/sacrificealtar
 	name = "sacrifice altar"
 	desc = "Used to sacrifice beings for gems or faith. Drag a target onto it to begin."
-	icon_state = "sacrifice-altar"
+	icon_state = "sacrificealtar"
 	max_integrity = 250
 	var/sacrificing = FALSE
 
@@ -374,21 +377,17 @@
 // ============================================================
 // WARD
 // ============================================================
-
 /obj/structure/divine/ward
 	name = "ward"
 	desc = "A protective ward that damages non-believers nearby."
 	icon_state = "ward"
 	max_integrity = 100
-	density = TRUE
-	anchored = TRUE
 	is_trap = TRUE
 
 
 // ============================================================
-// SHRINE (MOVE SPEED MODIFIERS + MOOD EVENTS)
+// SHRINE
 // ============================================================
-
 /datum/movespeed_modifier/shrine_buff
 	multiplicative_slowdown = -0.5
 
@@ -404,11 +403,6 @@
 	description = "An oppressive divine presence weighs on my soul...\n"
 	mood_change = -10
 	timeout = 1 MINUTES
-
-
-// ============================================================
-// SHRINE
-// ============================================================
 
 /obj/structure/divine/shrine
 	name = "shrine"
@@ -451,7 +445,6 @@
 			SEND_SIGNAL(H, COMSIG_ADD_MOOD_EVENT, "shrine_dread", /datum/mood_event/shrine_dread)
 
 /obj/structure/divine/shrine/attack_hand(mob/user)
-	// Cultist prayer
 	if(ishuman(user) && IS_HOG_CULTIST(user))
 		var/datum/antagonist/hog_cultist/C = user.mind?.has_antag_datum(/datum/antagonist/hog_cultist)
 		if(!C || C?.cult_team?.team_colour != deity?.team_colour)
@@ -477,7 +470,6 @@
 // ============================================================
 // FOUNTAIN
 // ============================================================
-
 /obj/structure/divine/fountain
 	name = "fountain"
 	desc = "A blessed fountain that can dispense the waters of life or death."
@@ -488,6 +480,7 @@
 	var/mode_cooldown_time = 30 SECONDS
 	var/recharging = FALSE
 	var/recharge_time = 10 MINUTES
+	var/uses_remaining = 1
 	var/list/buffed_users = list()
 
 /obj/structure/divine/fountain/Initialize(mapload)
@@ -502,10 +495,11 @@
 	if(recharging)
 		icon_state = "fountain-empty-water"
 		return
-	icon_state = "[initial(icon_state)]-[deity.team_colour]-water"
-	if(deity.team_colour == HOG_TEAM_RED)
+	if(active_mode == "death")
+		icon_state = "fountain-red-water"
 		light_color = LIGHT_COLOR_RED
 	else
+		icon_state = "fountain-blue-water"
 		light_color = LIGHT_COLOR_BLUE
 	set_light(2)
 
@@ -522,28 +516,23 @@
 		reagents.add_reagent(/datum/reagent/water_of_life, 1000)
 	else
 		reagents.add_reagent(/datum/reagent/water_of_death, 1000)
+	uses_remaining = 1
 
-/obj/structure/divine/fountain/attack_ghost(mob/user)
-	var/mob/living/simple_animal/god/G = user
-	if(!istype(G))
-		return
-	if(G.team_colour != deity?.team_colour)
-		return
-	if(mode_cooldown > world.time)
-		to_chat(G, span_warning("The fountain's power is still settling."))
-		return
-	if(active_mode == "life")
-		active_mode = "death"
-		visible_message(span_warning("[src]'s waters darken, swirling with deathly energy."))
-	else
-		active_mode = "life"
-		visible_message(span_notice("[src]'s waters shimmer with a pure, life-giving light."))
-	mode_cooldown = world.time + mode_cooldown_time
-	refill_reagents()
-	update_icon()
+/obj/structure/divine/fountain/proc/use_fountain()
+	if(recharging || uses_remaining <= 0)
+		return FALSE
+	uses_remaining--
+	if(uses_remaining <= 0)
+		recharging = TRUE
+		update_icon()
+		addtimer(CALLBACK(src, PROC_REF(end_recharge)), recharge_time)
+	return TRUE
 
 /obj/structure/divine/fountain/attackby(obj/item/I, mob/user, params)
 	if(istype(I, /obj/item/reagent_containers))
+		if(recharging || uses_remaining <= 0)
+			to_chat(user, span_warning("The fountain's waters have been depleted."))
+			return
 		var/obj/item/reagent_containers/container = I
 		if(!container.reagents || container.reagents.total_volume >= container.volume)
 			to_chat(user, span_warning("[container] is full!"))
@@ -554,11 +543,12 @@
 		var/amount = min(10, container.volume - container.reagents.total_volume, reagents.total_volume)
 		reagents.trans_to(container, amount)
 		to_chat(user, span_notice("You fill [container] with [amount] units from the fountain."))
+		use_fountain()
 		return
 	return ..()
 
 /obj/structure/divine/fountain/attack_hand(mob/user)
-	if(recharging)
+	if(recharging || uses_remaining <= 0)
 		to_chat(user, span_warning("The fountain's waters have been depleted."))
 		return
 
@@ -567,6 +557,8 @@
 			to_chat(user, span_warning("The waters of life cannot help the dead."))
 			return
 		var/mob/living/L = user
+		if(!use_fountain())
+			return
 		user.visible_message(span_notice("[user] drinks from the fountain and is bathed in a brilliant light!"), span_notice("You drink the waters of life! You feel invigorated and protected from death!"))
 		L.revive(full_heal = FALSE)
 		L.adjustBruteLoss(-50)
@@ -577,38 +569,38 @@
 		L.SetKnockdown(0)
 		L.setStaminaLoss(0)
 		L.reagents?.add_reagent(/datum/reagent/water_of_life, 10)
-		ADD_TRAIT(L, TRAIT_NODEATH, REF(src))
-		ADD_TRAIT(L, TRAIT_STUNIMMUNE, REF(src))
+		ADD_TRAIT(L, TRAIT_GODMODE, REF(src))
 		buffed_users += L
 		addtimer(CALLBACK(src, PROC_REF(remove_life_buff), L), 30 SECONDS)
 	else
 		if(isliving(user))
 			var/mob/living/L = user
 			if(L.stat == DEAD)
-				user.visible_message(span_notice("[user] is touched by the dark waters and gasps back to life!"), span_userdanger("The waters of death pull you back from the void!"))
-				L.revive(full_heal = FALSE)
-				L.adjustOxyLoss(-50)
-				L.adjustToxLoss(-50)
+				if(!use_fountain())
+					return
+				user.visible_message(span_warning("[user] is touched by the dark waters..."), span_userdanger("The waters of death pull you back from the void!"))
+				L.notify_ghost_cloning(source = src)
+				L.do_jitter_animation(10)
+				addtimer(CALLBACK(L, TYPE_PROC_REF(/mob/living, revive), ADMIN_HEAL_ALL), 4 SECONDS)
 				L.reagents?.add_reagent(/datum/reagent/water_of_death, 10)
 				ADD_TRAIT(L, TRAIT_NODEATH, REF(src))
 				addtimer(CALLBACK(src, PROC_REF(remove_revive_protection), L), 30 SECONDS)
 			else
+				if(!use_fountain())
+					return
 				user.visible_message(span_danger("[user] touches the dark waters and clutches their chest in agony!"), span_userdanger("The waters of death ravage your body and stop your heart!"))
 				L.adjustBruteLoss(10)
 				L.adjustFireLoss(10)
 				L.adjustToxLoss(10)
 				L.adjustOxyLoss(10)
-				L.set_heartattack(TRUE)
 				L.reagents?.add_reagent(/datum/reagent/water_of_death, 10)
-
-	recharging = TRUE
-	update_icon()
-	addtimer(CALLBACK(src, PROC_REF(end_recharge)), recharge_time)
+				var/datum/disease/heart_failure/D = new /datum/disease/heart_failure()
+				L.ForceContractDisease(D, FALSE, TRUE)
 
 /obj/structure/divine/fountain/MouseDrop_T(atom/movable/dropped, mob/user)
 	if(active_mode != "death")
 		return
-	if(recharging)
+	if(recharging || uses_remaining <= 0)
 		to_chat(user, span_warning("The fountain's waters have been depleted."))
 		return
 	if(!ishuman(dropped))
@@ -619,21 +611,20 @@
 	user.visible_message(span_notice("[user] drags [target]'s body to the fountain..."), span_notice("You bring [target] to the dark waters..."))
 	if(!do_after(user, 5 SECONDS, target))
 		return
-	if(!recharging && active_mode == "death")
-		target.visible_message(span_notice("[target] is touched by the dark waters and gasps back to life!"), span_userdanger("The waters of death pull you back from the void!"))
-		target.revive(full_heal = FALSE)
-		target.adjustOxyLoss(-50)
-		target.adjustToxLoss(-50)
-		target.reagents?.add_reagent(/datum/reagent/water_of_death, 10)
-		ADD_TRAIT(target, TRAIT_NODEATH, REF(src))
-		addtimer(CALLBACK(src, PROC_REF(remove_revive_protection), target), 30 SECONDS)
-		recharging = TRUE
-		update_icon()
-		addtimer(CALLBACK(src, PROC_REF(end_recharge)), recharge_time)
+	if(recharging || uses_remaining <= 0 || active_mode != "death")
+		return
+	if(!use_fountain())
+		return
+	target.visible_message(span_notice("[target] is touched by the dark waters and gasps back to life!"), span_userdanger("The waters of death pull you back from the void!"))
+	target.notify_ghost_cloning(source = src)
+	target.do_jitter_animation(10)
+	addtimer(CALLBACK(target, TYPE_PROC_REF(/mob/living, revive), ADMIN_HEAL_ALL), 4 SECONDS)
+	target.reagents?.add_reagent(/datum/reagent/water_of_death, 10)
+	ADD_TRAIT(target, TRAIT_NODEATH, REF(src))
+	addtimer(CALLBACK(src, PROC_REF(remove_revive_protection), target), 30 SECONDS)
 
 /obj/structure/divine/fountain/proc/remove_life_buff(mob/living/L)
-	REMOVE_TRAIT(L, TRAIT_NODEATH, REF(src))
-	REMOVE_TRAIT(L, TRAIT_STUNIMMUNE, REF(src))
+	REMOVE_TRAIT(L, TRAIT_GODMODE, REF(src))
 	buffed_users -= L
 	to_chat(L, span_warning("The fountain's protection fades..."))
 
@@ -642,14 +633,16 @@
 
 /obj/structure/divine/fountain/proc/end_recharge()
 	recharging = FALSE
+	uses_remaining = 1
+	refill_reagents()
 	update_icon()
 	if(deity)
 		to_chat(deity, span_notice("Your fountain's waters have replenished."))
 
+
 // ============================================================
 // CONDUIT
 // ============================================================
-
 /obj/structure/divine/conduit
 	name = "conduit"
 	desc = "Channels divine energy, increasing faith generation and expanding the god's domain."
@@ -658,9 +651,8 @@
 
 
 // ============================================================
-// MAGIC MIRROR (MIRROR ACTIONS)
+// MAGIC MIRROR
 // ============================================================
-
 /datum/action/mirror_cancel
 	name = "Stop Scrying"
 	desc = "Return your vision to your body."
@@ -702,14 +694,9 @@
 		return
 	mirror.attempt_soul_trap(owner)
 
-
-// ============================================================
-// MAGIC MIRROR
-// ============================================================
-
 /obj/structure/divine/magic_mirror
 	name = "magic mirror"
-	desc = "A divine mirror that allows users to scry on enemies and trap souls within. It seems to hold a deeper purpose..."
+	desc = "A divine mirror that allows users to scry on enemies and trap souls within."
 	icon = 'icons/obj/hand_of_god_secondary.dmi'
 	icon_state = "mirror_mirror"
 	max_integrity = 200
@@ -849,7 +836,7 @@
 	stop_scrying()
 
 	trapped_souls += victim.mind
-	ADD_TRAIT(victim, TRAIT_NO_SOUL, REF(src))
+	victim.set_soul_trapped()
 
 	victim.visible_message(span_danger("[victim] shudders as an eerie light leaves their body and flies into the mirror!"), span_userdanger("You feel a piece of yourself being torn away and trapped within a mirror! If you die... you may not return."))
 
@@ -864,8 +851,9 @@
 /obj/structure/divine/magic_mirror/proc/release_all_souls()
 	for(var/datum/mind/M in trapped_souls)
 		if(M.current)
-			REMOVE_TRAIT(M.current, TRAIT_NO_SOUL, REF(src))
-			to_chat(M.current, span_userdanger("You feel your soul return to you as the mirror shatters! You can be revived again."))
+			var/mob/living/L = M.current
+			L.clear_soul_trapped()
+			to_chat(L, span_userdanger("You feel your soul return to you as the mirror shatters! You can be revived again."))
 	trapped_souls = list()
 
 /obj/structure/divine/magic_mirror/proc/GiveMirrorHint(mob/victim, mob/user, force=FALSE)
@@ -880,7 +868,6 @@
 // ============================================================
 // CONSTRUCTION HOLDER
 // ============================================================
-
 /obj/structure/divine/construction_holder
 	name = "unfinished structure"
 	desc = "An unfinished divine structure. Requires materials to complete."
