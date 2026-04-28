@@ -126,6 +126,16 @@
 		F.mode_cooldown = world.time + F.mode_cooldown_time
 		F.update_icon()
 		return
+	if(istype(A, /obj/structure/divine/magic_mirror))
+		var/obj/structure/divine/magic_mirror/M = A
+		if(!M.deity)
+			to_chat(src, span_warning("This mirror is not connected to a deity!"))
+			return
+		if(team_colour != M.deity.team_colour)
+			to_chat(src, span_warning("The rival deity's mirror rejects you!"))
+			return
+		M.god_interact(src)
+		return
 	return ..()
 
 /mob/living/simple_animal/god/UnarmedAttack(atom/A, proximity_flag, modifiers)
