@@ -100,22 +100,6 @@
 	STOP_PROCESSING(SSobj, src)
 	return ..()
 
-/obj/structure/divine/defensepylon/attack_hand(mob/user)
-	if(!IS_HOG_GOD(user))
-		to_chat(user, span_warning("Only your deity can control this!"))
-		return
-	var/mob/living/simple_animal/god/G = user
-	if(G.team_colour != deity?.team_colour)
-		to_chat(user, span_warning("This pylon belongs to a different deity!"))
-		return
-	active = !active
-	attacking = FALSE
-	if(active)
-		visible_message(span_notice("[src] hums to life."))
-	else
-		visible_message(span_notice("[src] powers down."))
-	update_icon()
-
 /obj/structure/divine/defensepylon/process(delta_time)
 	if(!deity || !active || attacking)
 		return
@@ -467,23 +451,7 @@
 			SEND_SIGNAL(H, COMSIG_ADD_MOOD_EVENT, "shrine_dread", /datum/mood_event/shrine_dread)
 
 /obj/structure/divine/shrine/attack_hand(mob/user)
-	if(istype(user, /mob/living/simple_animal/god))
-		var/mob/living/simple_animal/god/G = user
-		if(G.team_colour != deity?.team_colour)
-			to_chat(user, span_warning("This shrine belongs to a different deity!"))
-			return
-		if(mode_cooldown > world.time)
-			to_chat(G, span_warning("The shrine's power is still settling. Wait [round((mode_cooldown - world.time)/10)] seconds."))
-			return
-		if(active_mode == "buff")
-			active_mode = "debuff"
-			visible_message(span_warning("[src]'s eyes darken as an oppressive aura emanates from it, weighing down the souls of the wicked."))
-		else
-			active_mode = "buff"
-			visible_message(span_notice("[src]'s eyes glow warmly as a protective divine light radiates outward."))
-		mode_cooldown = world.time + mode_cooldown_time
-		return
-
+	// Cultist prayer
 	if(ishuman(user) && IS_HOG_CULTIST(user))
 		var/datum/antagonist/hog_cultist/C = user.mind?.has_antag_datum(/datum/antagonist/hog_cultist)
 		if(!C || C?.cult_team?.team_colour != deity?.team_colour)
@@ -512,10 +480,171 @@
 
 /obj/structure/divine/fountain
 	name = "fountain"
-	desc = "A blessed fountain that heals nearby followers."
+	desc = "A blessed fountain that can dispense the waters of life or death."
 	icon_state = "fountain"
 	max_integrity = 200
+	var/active_mode = "life"
+	var/mode_cooldown = 0
+	var/mode_cooldown_time = 30 SECONDS
+	var/recharging = FALSE
+	var/recharge_time = 10 MINUTES
+	var/list/buffed_users = list()
 
+/obj/structure/divine/fountain/Initialize(mapload)
+	. = ..()
+	create_reagents(1000, TRANSPARENT)
+	refill_reagents()
+
+/obj/structure/divine/fountain/update_icon()
+	if(!deity)
+		icon_state = "fountain"
+		return
+	if(recharging)
+		icon_state = "fountain-empty-water"
+		return
+	icon_state = "[initial(icon_state)]-[deity.team_colour]-water"
+	if(deity.team_colour == HOG_TEAM_RED)
+		light_color = LIGHT_COLOR_RED
+	else
+		light_color = LIGHT_COLOR_BLUE
+	set_light(2)
+
+/obj/structure/divine/fountain/Destroy()
+	for(var/mob/living/L in buffed_users)
+		remove_life_buff(L)
+	return ..()
+
+/obj/structure/divine/fountain/proc/refill_reagents()
+	if(!reagents)
+		return
+	reagents.clear_reagents()
+	if(active_mode == "life")
+		reagents.add_reagent(/datum/reagent/water_of_life, 1000)
+	else
+		reagents.add_reagent(/datum/reagent/water_of_death, 1000)
+
+/obj/structure/divine/fountain/attack_ghost(mob/user)
+	var/mob/living/simple_animal/god/G = user
+	if(!istype(G))
+		return
+	if(G.team_colour != deity?.team_colour)
+		return
+	if(mode_cooldown > world.time)
+		to_chat(G, span_warning("The fountain's power is still settling."))
+		return
+	if(active_mode == "life")
+		active_mode = "death"
+		visible_message(span_warning("[src]'s waters darken, swirling with deathly energy."))
+	else
+		active_mode = "life"
+		visible_message(span_notice("[src]'s waters shimmer with a pure, life-giving light."))
+	mode_cooldown = world.time + mode_cooldown_time
+	refill_reagents()
+	update_icon()
+
+/obj/structure/divine/fountain/attackby(obj/item/I, mob/user, params)
+	if(istype(I, /obj/item/reagent_containers))
+		var/obj/item/reagent_containers/container = I
+		if(!container.reagents || container.reagents.total_volume >= container.volume)
+			to_chat(user, span_warning("[container] is full!"))
+			return
+		if(!reagents || !reagents.total_volume)
+			to_chat(user, span_warning("The fountain is empty!"))
+			return
+		var/amount = min(10, container.volume - container.reagents.total_volume, reagents.total_volume)
+		reagents.trans_to(container, amount)
+		to_chat(user, span_notice("You fill [container] with [amount] units from the fountain."))
+		return
+	return ..()
+
+/obj/structure/divine/fountain/attack_hand(mob/user)
+	if(recharging)
+		to_chat(user, span_warning("The fountain's waters have been depleted."))
+		return
+
+	if(active_mode == "life")
+		if(!isliving(user) || user.stat == DEAD)
+			to_chat(user, span_warning("The waters of life cannot help the dead."))
+			return
+		var/mob/living/L = user
+		user.visible_message(span_notice("[user] drinks from the fountain and is bathed in a brilliant light!"), span_notice("You drink the waters of life! You feel invigorated and protected from death!"))
+		L.revive(full_heal = FALSE)
+		L.adjustBruteLoss(-50)
+		L.adjustFireLoss(-50)
+		L.adjustStaminaLoss(-100)
+		L.SetUnconscious(0)
+		L.SetParalyzed(0)
+		L.SetKnockdown(0)
+		L.setStaminaLoss(0)
+		L.reagents?.add_reagent(/datum/reagent/water_of_life, 10)
+		ADD_TRAIT(L, TRAIT_NODEATH, REF(src))
+		ADD_TRAIT(L, TRAIT_STUNIMMUNE, REF(src))
+		buffed_users += L
+		addtimer(CALLBACK(src, PROC_REF(remove_life_buff), L), 30 SECONDS)
+	else
+		if(isliving(user))
+			var/mob/living/L = user
+			if(L.stat == DEAD)
+				user.visible_message(span_notice("[user] is touched by the dark waters and gasps back to life!"), span_userdanger("The waters of death pull you back from the void!"))
+				L.revive(full_heal = FALSE)
+				L.adjustOxyLoss(-50)
+				L.adjustToxLoss(-50)
+				L.reagents?.add_reagent(/datum/reagent/water_of_death, 10)
+				ADD_TRAIT(L, TRAIT_NODEATH, REF(src))
+				addtimer(CALLBACK(src, PROC_REF(remove_revive_protection), L), 30 SECONDS)
+			else
+				user.visible_message(span_danger("[user] touches the dark waters and clutches their chest in agony!"), span_userdanger("The waters of death ravage your body and stop your heart!"))
+				L.adjustBruteLoss(10)
+				L.adjustFireLoss(10)
+				L.adjustToxLoss(10)
+				L.adjustOxyLoss(10)
+				L.set_heartattack(TRUE)
+				L.reagents?.add_reagent(/datum/reagent/water_of_death, 10)
+
+	recharging = TRUE
+	update_icon()
+	addtimer(CALLBACK(src, PROC_REF(end_recharge)), recharge_time)
+
+/obj/structure/divine/fountain/MouseDrop_T(atom/movable/dropped, mob/user)
+	if(active_mode != "death")
+		return
+	if(recharging)
+		to_chat(user, span_warning("The fountain's waters have been depleted."))
+		return
+	if(!ishuman(dropped))
+		return
+	var/mob/living/carbon/human/target = dropped
+	if(target.stat != DEAD)
+		return
+	user.visible_message(span_notice("[user] drags [target]'s body to the fountain..."), span_notice("You bring [target] to the dark waters..."))
+	if(!do_after(user, 5 SECONDS, target))
+		return
+	if(!recharging && active_mode == "death")
+		target.visible_message(span_notice("[target] is touched by the dark waters and gasps back to life!"), span_userdanger("The waters of death pull you back from the void!"))
+		target.revive(full_heal = FALSE)
+		target.adjustOxyLoss(-50)
+		target.adjustToxLoss(-50)
+		target.reagents?.add_reagent(/datum/reagent/water_of_death, 10)
+		ADD_TRAIT(target, TRAIT_NODEATH, REF(src))
+		addtimer(CALLBACK(src, PROC_REF(remove_revive_protection), target), 30 SECONDS)
+		recharging = TRUE
+		update_icon()
+		addtimer(CALLBACK(src, PROC_REF(end_recharge)), recharge_time)
+
+/obj/structure/divine/fountain/proc/remove_life_buff(mob/living/L)
+	REMOVE_TRAIT(L, TRAIT_NODEATH, REF(src))
+	REMOVE_TRAIT(L, TRAIT_STUNIMMUNE, REF(src))
+	buffed_users -= L
+	to_chat(L, span_warning("The fountain's protection fades..."))
+
+/obj/structure/divine/fountain/proc/remove_revive_protection(mob/living/L)
+	REMOVE_TRAIT(L, TRAIT_NODEATH, REF(src))
+
+/obj/structure/divine/fountain/proc/end_recharge()
+	recharging = FALSE
+	update_icon()
+	if(deity)
+		to_chat(deity, span_notice("Your fountain's waters have replenished."))
 
 // ============================================================
 // CONDUIT
