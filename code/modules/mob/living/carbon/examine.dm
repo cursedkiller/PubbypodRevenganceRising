@@ -256,6 +256,8 @@
 
 	if(suiciding)
 		return span_warning("[t_He] appear[p_s()] to have committed suicide... there is no hope of recovery.")
+	if(HAS_TRAIT(src, TRAIT_SOUL_TRAPPED))
+		return span_warning("[t_His] eyes are hollow and empty. [t_His] soul has been trapped. Revival is impossible.")
 	if(get_organ_by_type(/obj/item/organ/brain) && !key && !get_ghost(FALSE, TRUE))
 		return span_deadsay("[t_He] [t_is] limp and unresponsive; there are no signs of life and [t_his] soul has departed...")
 	else if(!client && key)
