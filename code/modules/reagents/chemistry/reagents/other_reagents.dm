@@ -198,17 +198,17 @@
 	required_drink_type = /datum/reagent/water
 	icon_state = "shotglassclear"
 
-/datum/glass_style/drinking_glass/
-	required_drink_type = /datum/reagent/
-	name = "glass of "
+/datum/glass_style/drinking_glass/water
+	required_drink_type = /datum/reagent/water
+	name = "glass of water"
 	desc = "The father of all refreshments."
 	icon_state = "glass_clear"
 
 /*
- *	 reaction to turf
+ *	Water reaction to turf
  */
 
-/datum/reagent//expose_turf(turf/exposed_turf, reac_volume)
+/datum/reagent/water/expose_turf(turf/exposed_turf, reac_volume)
 	. = ..()
 	if(!isopenturf(exposed_turf))
 		return
@@ -216,10 +216,10 @@
 	var/turf/open/open_turf = exposed_turf
 
 	if(reac_volume >= 5)
-		open_turf.MakeSlippery(TURF_WET_, 10 SECONDS, min(reac_volume * 1.5 SECONDS, 60 SECONDS))
+		open_turf.MakeSlippery(TURF_WET_WATER, 10 SECONDS, min(reac_volume * 1.5 SECONDS, 60 SECONDS))
 
 	for(var/mob/living/simple_animal/slime/slime in open_turf)
-		slime.apply_()
+		slime.apply_water()
 
 	var/obj/effect/hotspot/hotspot = (locate(/obj/effect/hotspot) in open_turf)
 	if(hotspot && !isspaceturf(open_turf))
@@ -234,10 +234,10 @@
 	open_turf.clean_turf_texture()
 
 /*
- *	 reaction to an object
+ *	Water reaction to an object
  */
 
-/datum/reagent//expose_obj(obj/exposed_obj, reac_volume)
+/datum/reagent/water/expose_obj(obj/exposed_obj, reac_volume)
 	. = ..()
 	exposed_obj.extinguish()
 	exposed_obj.acid_level = 0
@@ -253,10 +253,10 @@
 		qdel(hide)
 
 /*
- *	 reaction to a mob
+ *	Water reaction to a mob
  */
 
-/datum/reagent//expose_mob(mob/living/exposed_mob, method = TOUCH, reac_volume)//Splashing people with  can help put them out!
+/datum/reagent/water/expose_mob(mob/living/exposed_mob, method = TOUCH, reac_volume)//Splashing people with water can help put them out!
 	if(!istype(exposed_mob))
 		return
 	if(isoozeling(exposed_mob))
@@ -265,7 +265,7 @@
 			touch_mod = exposed_mob.getarmor(null, BIO) * 0.01
 		exposed_mob.blood_volume = max(exposed_mob.blood_volume - 30 * (1 - touch_mod), 0)
 		if(touch_mod < 0.9)
-			to_chat(exposed_mob, span_warning("The  causes you to melt away!"))
+			to_chat(exposed_mob, span_warning("The water causes you to melt away!"))
 	if(method == TOUCH)
 		exposed_mob.adjust_wet_stacks(reac_volume / 10)
 		exposed_mob.extinguish_mob()
@@ -334,21 +334,16 @@
 				affected_mob.Unconscious(12 SECONDS)
 				to_chat(affected_mob, span_cultlarge(pick("Your blood is your bond - you are nothing without it", "Do not forget your place", \
 				"All that power, and you still fail?", "If you cannot scour this poison, I shall scour your meager life!")))
-		if(IS_HOG_CULTIST(affected_mob) && DT_PROB(10, delta_time))
-			affected_mob.say(pick("%Father dearest...please commend my spirit...", "%the light shineth in darkness; and the darkness comprehended it not...", "%his mercy is everlasting; and his truth endureth to all!", "%Father dearest... Why have you forsaken me...!", "The nexus... It's crying...", "Forgive Me!", "The task ahead is terrible, my weakness cannot be tolerated.!", "%The choir softly sing..."), forced = "holy water")
 
 	if(data["deciseconds_metabolized"] >= (1 MINUTES)) // 24 units
-		if(IS_CULTIST(affected_mob) || IS_SERVANT_OF_RATVAR(affected_mob) || IS_HOG_CULTIST(affected_mob))
+		if(IS_CULTIST(affected_mob) || IS_SERVANT_OF_RATVAR(affected_mob))
 			if(IS_CULTIST(affected_mob))
 				affected_mob.mind.remove_antag_datum(/datum/antagonist/cult)
 			if(IS_SERVANT_OF_RATVAR(affected_mob))
 				remove_servant_of_ratvar(affected_mob.mind)
-			if(IS_HOG_CULTIST(affected_mob))
-				affected_mob.mind.remove_antag_datum(/datum/antagonist/hog_cultist)
-				to_chat(affected_mob, span_userdanger("Your faith has been washed away by holy water!"))
 			affected_mob.remove_status_effect(/datum/status_effect/jitter)
 			affected_mob.remove_status_effect(/datum/status_effect/speech/stutter)
-			holder?.remove_reagent(type, volume)
+			holder?.remove_reagent(type, volume) // maybe this is a little too perfect and a max() cap on the statuses would be better??
 
 /datum/reagent/water/holywater/expose_turf(turf/exposed_turf, reac_volume)
 	. = ..()
@@ -358,6 +353,7 @@
 		for(var/obj/effect/rune/rune in exposed_turf)
 			qdel(rune)
 	exposed_turf.Bless()
+
 /datum/reagent/fuel/unholywater //if you somehow managed to extract this from someone, dont splash it on yourself and have a smoke
 	name = "Unholy Water"
 	description = "Something that shouldn't exist on this plane of existence."
@@ -2251,37 +2247,37 @@ Basically, we fill the time between now and 2s from now with hands based off the
 	var/total_healed = 0
 	var/max_healing = 200
 
-/datum/reagent/water_of_life/on_mob_metabolize(mob/living/carbon/affected_mob)
+/datum/reagent/water_of_life/on_mob_metabolize(mob/living/carbon/M)
 	. = ..()
 	total_healed = 0
-	affected_mob.maxHealth += 5000
-	affected_mob.health += 5000
-	to_chat(affected_mob, span_notice("Your body is flooded with divine power! You feel invincible, but you sense this power will demand payment..."))
+	M.maxHealth += 5000
+	M.health += 5000
+	to_chat(M, span_notice("Your body is flooded with divine power! You feel invincible, but you sense this power will demand payment..."))
 
-/datum/reagent/water_of_life/on_mob_life(mob/living/carbon/affected_mob, delta_time, times_fired)
+/datum/reagent/water_of_life/on_mob_life(mob/living/carbon/M)
 	. = ..()
 	if(total_healed >= max_healing)
 		return
-	var/heal_amount = min(3 * REM * delta_time, max_healing - total_healed)
-	affected_mob.adjustBruteLoss(-heal_amount)
-	affected_mob.adjustFireLoss(-heal_amount)
-	affected_mob.adjustToxLoss(-heal_amount * 0.5)
-	affected_mob.adjustOxyLoss(-heal_amount * 0.5)
-	affected_mob.adjustStaminaLoss(-5 * REM * delta_time)
-	affected_mob.SetUnconscious(0)
-	affected_mob.SetParalyzed(0)
+	var/heal_amount = min(3, max_healing - total_healed)
+	M.adjustBruteLoss(-heal_amount)
+	M.adjustFireLoss(-heal_amount)
+	M.adjustToxLoss(-heal_amount * 0.5)
+	M.adjustOxyLoss(-heal_amount * 0.5)
+	M.adjustStaminaLoss(-5)
+	M.SetUnconscious(0)
+	M.SetParalyzed(0)
 	total_healed += heal_amount * 2.5
-	if(affected_mob.health > 50)
-		affected_mob.add_atom_colour("#44ccff", TEMPORARY_COLOUR_PRIORITY)
+	if(M.health > 50)
+		M.add_atom_colour("#44ccff", TEMPORARY_COLOUR_PRIORITY)
 
-/datum/reagent/water_of_life/on_mob_end_metabolize(mob/living/carbon/affected_mob)
+/datum/reagent/water_of_life/on_mob_end_metabolize(mob/living/carbon/M)
+	M.maxHealth -= 5000
+	M.health -= 5000
+	to_chat(M, span_userdanger("The divine power abandons you! The borrowed vitality vanishes, leaving your true wounds behind!"))
+	if(M.health <= 0)
+		M.visible_message(span_danger("[M] collapses as the divine light fades!"))
+		M.death()
 	. = ..()
-	affected_mob.maxHealth -= 5000
-	affected_mob.health -= 5000
-	to_chat(affected_mob, span_userdanger("The divine power abandons you! The borrowed vitality vanishes, leaving your true wounds behind!"))
-	if(affected_mob.health <= 0)
-		affected_mob.visible_message(span_danger("[affected_mob] collapses as the divine light fades!"))
-		affected_mob.death()
 
 /datum/reagent/water_of_death
 	name = "Water of Death"
@@ -2290,20 +2286,20 @@ Basically, we fill the time between now and 2s from now with hands based off the
 	taste_description = "cold nothingness"
 	metabolization_rate = 3 * REAGENTS_METABOLISM
 
-/datum/reagent/water_of_death/on_mob_metabolize(mob/living/carbon/affected_mob)
+/datum/reagent/water_of_death/on_mob_metabolize(mob/living/carbon/M)
 	. = ..()
-	if(affected_mob.stat != DEAD)
+	if(M.stat != DEAD)
 		var/datum/disease/heart_failure/D = new /datum/disease/heart_failure()
 		D.stage_prob = 20
-		affected_mob.ForceContractDisease(D, FALSE, TRUE)
+		M.ForceContractDisease(D, FALSE, TRUE)
 
-/datum/reagent/water_of_death/on_mob_life(mob/living/carbon/affected_mob, delta_time, times_fired)
+/datum/reagent/water_of_death/on_mob_life(mob/living/carbon/M)
 	. = ..()
-	if(affected_mob.stat == DEAD)
+	if(M.stat == DEAD)
 		return
-	affected_mob.adjustOxyLoss(3 * REM * delta_time)
-	if(DT_PROB(10, delta_time))
-		to_chat(affected_mob, span_userdanger("You feel the cold grip of death tightening around your heart..."))
+	M.adjustOxyLoss(3)
+	if(prob(10))
+		to_chat(M, span_userdanger("You feel the cold grip of death tightening around your heart..."))
 
 /datum/reagent/ants
 	name = "Ants"
