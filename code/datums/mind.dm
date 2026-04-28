@@ -874,15 +874,14 @@
 		var/pop_value = length(GLOB.player_list)
 		var/decrement = SOUL_GLIMMER_POP_REQ_CREEP_STARTING
 		while(pop_value > 0)
-			pop_value -= decrement++ // 4, 5, 6, 7...
+			pop_value -= decrement++
 			max_soul_pool++
-			if(max_soul_pool >= length(GLOB.soul__colors))
-				break // Failsafe loop even if our codebase won't have +100 pop count...
-		max_soul_pool = clamp(max_soul_pool, SOUL__MINIMUM_POP_COLOR, length(GLOB.soul__colors))
+			if(max_soul_pool >= length(GLOB.soul_glimmer_colors))
+				break
+		max_soul_pool = clamp(max_soul_pool, SOUL_GLIMMER_MINIMUM_POP_COLOR, length(GLOB.soul_glimmer_colors))
 
-	// build a list for colours to give
 	var/static/list/options_to_give
 	if(!length(options_to_give))
-		options_to_give = GLOB.soul__colors.Copy(1, max_soul_pool+1) // Copy(1, 3) = copy items 1-2. Not 3. Be careful.
+		options_to_give = GLOB.soul_glimmer_colors.Copy(1, max_soul_pool+1)
 
-	soul_ = pick_n_take(options_to_give)
+	soul_glimmer = pick_n_take(options_to_give)
