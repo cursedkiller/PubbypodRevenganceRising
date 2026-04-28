@@ -93,6 +93,9 @@
 	/// What color our soul is
 	var/soul_glimmer
 
+	/// The purest Vessel chosen by a Hand of God deity for later possession.
+	var/datum/mind/purest_vessel
+
 	///Assoc list of addiction values, key is the type of withdrawal (as singleton type), and the value is the amount of addiction points (as number)
 	var/list/addiction_points
 	///Assoc list of key active addictions and value amount of cycles that it has been active.
@@ -873,13 +876,13 @@
 		while(pop_value > 0)
 			pop_value -= decrement++ // 4, 5, 6, 7...
 			max_soul_pool++
-			if(max_soul_pool >= length(GLOB.soul_glimmer_colors))
+			if(max_soul_pool >= length(GLOB.soul__colors))
 				break // Failsafe loop even if our codebase won't have +100 pop count...
-		max_soul_pool = clamp(max_soul_pool, SOUL_GLIMMER_MINIMUM_POP_COLOR, length(GLOB.soul_glimmer_colors))
+		max_soul_pool = clamp(max_soul_pool, SOUL__MINIMUM_POP_COLOR, length(GLOB.soul__colors))
 
 	// build a list for colours to give
 	var/static/list/options_to_give
 	if(!length(options_to_give))
-		options_to_give = GLOB.soul_glimmer_colors.Copy(1, max_soul_pool+1) // Copy(1, 3) = copy items 1-2. Not 3. Be careful.
+		options_to_give = GLOB.soul__colors.Copy(1, max_soul_pool+1) // Copy(1, 3) = copy items 1-2. Not 3. Be careful.
 
-	soul_glimmer = pick_n_take(options_to_give)
+	soul_ = pick_n_take(options_to_give)
