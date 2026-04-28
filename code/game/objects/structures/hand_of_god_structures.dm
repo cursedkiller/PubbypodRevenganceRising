@@ -16,7 +16,8 @@
 	anchored = TRUE
 	max_integrity = 200
 	light_range = 2
-	light_color = null	var/mob/living/simple_animal/god/deity = null
+	light_color = null
+	var/mob/living/simple_animal/god/deity = null
 	var/is_trap = FALSE
 	var/is_construction_holder = FALSE
 
@@ -221,7 +222,7 @@
 /obj/structure/divine/convertaltar
 	name = "conversion altar"
 	desc = "Used to convert crew members and rival cultists to your deity. Drag a target onto it to begin."
-	icon_state = "convertaltar"
+	icon_state = "convert-altar"
 	max_integrity = 250
 	var/converting = FALSE
 
@@ -306,7 +307,7 @@
 /obj/structure/divine/sacrificealtar
 	name = "sacrifice altar"
 	desc = "Used to sacrifice beings for gems or faith. Drag a target onto it to begin."
-	icon_state = "sacrificealtar"
+	icon_state = "sacrifice-altar"
 	max_integrity = 250
 	var/sacrificing = FALSE
 
@@ -373,10 +374,10 @@
 
 	new /obj/item/stack/sheet/lessergem(get_turf(src))
 	target.visible_message(span_warning("[target] bursts into flames on the altar!"), span_userdanger("You are sacrificed!"))
-		target.death()
-		target.adjustFireLoss(200)
-		target.update_body()
-		to_chat(user, span_notice("A lesser gem materializes."))
+	target.death()
+	target.adjustFireLoss(200)
+	target.update_body()
+	to_chat(user, span_notice("A lesser gem materializes."))
 	sacrificing = FALSE
 
 
@@ -393,7 +394,7 @@
 
 
 // ============================================================
-// SHRINE
+// SHRINE (MOVE SPEED MODIFIERS + MOOD EVENTS)
 // ============================================================
 
 /datum/movespeed_modifier/shrine_buff
@@ -411,6 +412,11 @@
 	description = "An oppressive divine presence weighs on my soul...\n"
 	mood_change = -10
 	timeout = 1 MINUTES
+
+
+// ============================================================
+// SHRINE
+// ============================================================
 
 /obj/structure/divine/shrine
 	name = "shrine"
@@ -510,6 +516,9 @@
 		icon_state = "fountain-blue-water"
 		light_color = LIGHT_COLOR_BLUE
 	set_light(2)
+
+/obj/structure/divine/fountain/Destroy()
+	return ..()
 
 /obj/structure/divine/fountain/proc/refill_reagents()
 	if(!reagents)
@@ -647,7 +656,7 @@
 
 
 // ============================================================
-// MAGIC MIRROR
+// MAGIC MIRROR (MIRROR ACTIONS)
 // ============================================================
 
 /datum/action/mirror_cancel
@@ -690,6 +699,11 @@
 		to_chat(owner, span_warning("The mirror's trapping power hasn't recharged yet."))
 		return
 	mirror.attempt_soul_trap(owner)
+
+
+// ============================================================
+// MAGIC MIRROR
+// ============================================================
 
 /obj/structure/divine/magic_mirror
 	name = "magic mirror"
@@ -753,6 +767,10 @@
 	start_scrying(user)
 
 /obj/structure/divine/magic_mirror/proc/god_interact(mob/living/simple_animal/god/G)
+	if(selected_vessel)
+		to_chat(G, span_notice("The mirror has already bonded a vessel: [selected_vessel.name]. You may only have one vessel."))
+		return
+
 	var/list/possible = list()
 	for(var/mob/living/carbon/human/H in GLOB.alive_mob_list)
 		if(IS_HOG_CULTIST(H))
@@ -764,18 +782,15 @@
 		possible |= H
 
 	if(!length(possible))
-		to_chat(G, span_warning("The mirror's surface swirls, searching the mortal realm for an unclaimed vessel... but none are found. All souls are either claimed by another deity, already trapped, or otherwise unsuitable. Try again when more crew have arrived or souls have been released."))
+		to_chat(G, span_warning("The mirror's surface swirls, searching the mortal realm... but no suitable vessel is found."))
 		return
 
-	to_chat(G, span_notice("The mirror scans the mortal realm, searching for unclaimed souls..."))
-	var/mob/living/carbon/human/vessel = tgui_input_list(G, "Select a vessel for future possession:", "Find Vessel", sort_names(possible))
-	if(!vessel)
-		to_chat(G, span_warning("You decide not to choose a vessel at this time."))
-		return
-
+	to_chat(G, span_notice("The mirror scans the mortal realm, seeking a worthy vessel..."))
+	var/mob/living/carbon/human/vessel = pick(possible)
 	selected_vessel = vessel.mind
-	to_chat(G, span_notice("The mirror focuses on [vessel], branding [vessel.p_them()] as your chosen vessel. When the time comes, you may possess this mortal."))
-	to_chat(vessel, span_warning("You feel an ominous divine gaze fall upon you, scrutinising your very existence... something has marked you."))
+	to_chat(G, span_notice("The mirror focuses on [vessel], branding [vessel.p_them()] as your vessel."))
+	to_chat(vessel, span_warning("You feel an overwhelming divine presence mark you! Something ancient has claimed your body."))
+	log_game("[key_name(G)] selected [key_name(vessel)] as their vessel via magic mirror.")
 
 /obj/structure/divine/magic_mirror/proc/start_scrying(mob/user)
 	if(!scry_target)
