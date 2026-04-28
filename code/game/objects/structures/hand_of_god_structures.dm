@@ -16,8 +16,7 @@
 	anchored = TRUE
 	max_integrity = 200
 	light_range = 2
-	light_color = null
-	var/mob/living/simple_animal/god/deity = null
+	light_color = null	var/mob/living/simple_animal/god/deity = null
 	var/is_trap = FALSE
 	var/is_construction_holder = FALSE
 
@@ -47,6 +46,7 @@
 // ============================================================
 // NEXUS
 // ============================================================
+
 /obj/structure/divine/nexus
 	name = "nexus"
 	desc = "The anchor of a deity in this realm."
@@ -89,6 +89,7 @@
 // ============================================================
 // DEFENSE PYLON
 // ============================================================
+
 /obj/structure/divine/defensepylon
 	name = "defense pylon"
 	desc = "A defensive structure that attacks non-believers. Click to toggle on/off."
@@ -183,6 +184,7 @@
 // ============================================================
 // POWER PYLON
 // ============================================================
+
 /obj/structure/divine/powerpylon
 	name = "power pylon"
 	desc = "Generates faith for your deity."
@@ -193,6 +195,7 @@
 // ============================================================
 // TRANSLOCATOR
 // ============================================================
+
 /obj/structure/divine/translocator
 	name = "translocator"
 	desc = "Allows followers to teleport between translocators."
@@ -203,6 +206,7 @@
 // ============================================================
 // FORGE
 // ============================================================
+
 /obj/structure/divine/forge
 	name = "forge"
 	desc = "Creates divine equipment for followers."
@@ -213,6 +217,7 @@
 // ============================================================
 // CONVERSION ALTAR
 // ============================================================
+
 /obj/structure/divine/convertaltar
 	name = "conversion altar"
 	desc = "Used to convert crew members and rival cultists to your deity. Drag a target onto it to begin."
@@ -297,6 +302,7 @@
 // ============================================================
 // SACRIFICE ALTAR
 // ============================================================
+
 /obj/structure/divine/sacrificealtar
 	name = "sacrifice altar"
 	desc = "Used to sacrifice beings for gems or faith. Drag a target onto it to begin."
@@ -367,16 +373,17 @@
 
 	new /obj/item/stack/sheet/lessergem(get_turf(src))
 	target.visible_message(span_warning("[target] bursts into flames on the altar!"), span_userdanger("You are sacrificed!"))
-	target.death()
-	target.adjustFireLoss(200)
-	target.update_body()
-	to_chat(user, span_notice("A lesser gem materializes."))
+		target.death()
+		target.adjustFireLoss(200)
+		target.update_body()
+		to_chat(user, span_notice("A lesser gem materializes."))
 	sacrificing = FALSE
 
 
 // ============================================================
 // WARD
 // ============================================================
+
 /obj/structure/divine/ward
 	name = "ward"
 	desc = "A protective ward that damages non-believers nearby."
@@ -388,6 +395,7 @@
 // ============================================================
 // SHRINE
 // ============================================================
+
 /datum/movespeed_modifier/shrine_buff
 	multiplicative_slowdown = -0.5
 
@@ -470,6 +478,7 @@
 // ============================================================
 // FOUNTAIN
 // ============================================================
+
 /obj/structure/divine/fountain
 	name = "fountain"
 	desc = "A blessed fountain that can dispense the waters of life or death."
@@ -481,7 +490,6 @@
 	var/recharging = FALSE
 	var/recharge_time = 10 MINUTES
 	var/uses_remaining = 1
-	var/list/buffed_users = list()
 
 /obj/structure/divine/fountain/Initialize(mapload)
 	. = ..()
@@ -502,11 +510,6 @@
 		icon_state = "fountain-blue-water"
 		light_color = LIGHT_COLOR_BLUE
 	set_light(2)
-
-/obj/structure/divine/fountain/Destroy()
-	for(var/mob/living/L in buffed_users)
-		remove_life_buff(L)
-	return ..()
 
 /obj/structure/divine/fountain/proc/refill_reagents()
 	if(!reagents)
@@ -556,9 +559,9 @@
 		if(!isliving(user) || user.stat == DEAD)
 			to_chat(user, span_warning("The waters of life cannot help the dead."))
 			return
-		var/mob/living/L = user
 		if(!use_fountain())
 			return
+		var/mob/living/L = user
 		user.visible_message(span_notice("[user] drinks from the fountain and is bathed in a brilliant light!"), span_notice("You drink the waters of life! You feel invigorated and protected from death!"))
 		L.revive(full_heal = FALSE)
 		L.adjustBruteLoss(-50)
@@ -569,9 +572,6 @@
 		L.SetKnockdown(0)
 		L.setStaminaLoss(0)
 		L.reagents?.add_reagent(/datum/reagent/water_of_life, 10)
-		ADD_TRAIT(L, TRAIT_GODMODE, REF(src))
-		buffed_users += L
-		addtimer(CALLBACK(src, PROC_REF(remove_life_buff), L), 30 SECONDS)
 	else
 		if(isliving(user))
 			var/mob/living/L = user
@@ -623,11 +623,6 @@
 	ADD_TRAIT(target, TRAIT_NODEATH, REF(src))
 	addtimer(CALLBACK(src, PROC_REF(remove_revive_protection), target), 30 SECONDS)
 
-/obj/structure/divine/fountain/proc/remove_life_buff(mob/living/L)
-	REMOVE_TRAIT(L, TRAIT_GODMODE, REF(src))
-	buffed_users -= L
-	to_chat(L, span_warning("The fountain's protection fades..."))
-
 /obj/structure/divine/fountain/proc/remove_revive_protection(mob/living/L)
 	REMOVE_TRAIT(L, TRAIT_NODEATH, REF(src))
 
@@ -643,6 +638,7 @@
 // ============================================================
 // CONDUIT
 // ============================================================
+
 /obj/structure/divine/conduit
 	name = "conduit"
 	desc = "Channels divine energy, increasing faith generation and expanding the god's domain."
@@ -653,6 +649,7 @@
 // ============================================================
 // MAGIC MIRROR
 // ============================================================
+
 /datum/action/mirror_cancel
 	name = "Stop Scrying"
 	desc = "Return your vision to your body."
@@ -767,16 +764,18 @@
 		possible |= H
 
 	if(!length(possible))
-		to_chat(G, span_warning("No suitable vessels found for possession."))
+		to_chat(G, span_warning("The mirror's surface swirls, searching the mortal realm for an unclaimed vessel... but none are found. All souls are either claimed by another deity, already trapped, or otherwise unsuitable. Try again when more crew have arrived or souls have been released."))
 		return
 
+	to_chat(G, span_notice("The mirror scans the mortal realm, searching for unclaimed souls..."))
 	var/mob/living/carbon/human/vessel = tgui_input_list(G, "Select a vessel for future possession:", "Find Vessel", sort_names(possible))
 	if(!vessel)
+		to_chat(G, span_warning("You decide not to choose a vessel at this time."))
 		return
 
 	selected_vessel = vessel.mind
-	to_chat(G, span_notice("You have marked [vessel] as a potential vessel for possession."))
-	to_chat(vessel, span_warning("You feel an ominous divine gaze fall upon you..."))
+	to_chat(G, span_notice("The mirror focuses on [vessel], branding [vessel.p_them()] as your chosen vessel. When the time comes, you may possess this mortal."))
+	to_chat(vessel, span_warning("You feel an ominous divine gaze fall upon you, scrutinising your very existence... something has marked you."))
 
 /obj/structure/divine/magic_mirror/proc/start_scrying(mob/user)
 	if(!scry_target)
@@ -868,6 +867,7 @@
 // ============================================================
 // CONSTRUCTION HOLDER
 // ============================================================
+
 /obj/structure/divine/construction_holder
 	name = "unfinished structure"
 	desc = "An unfinished divine structure. Requires materials to complete."
