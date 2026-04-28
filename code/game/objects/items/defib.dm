@@ -517,7 +517,7 @@
 
 /obj/item/shockpaddles/proc/can_defib(mob/living/carbon/H)
 	var/obj/item/organ/heart = H.get_organ_by_type(/obj/item/organ/heart)
-	if(H.suiciding || HAS_TRAIT(H, TRAIT_HUSK))
+	if(H.suiciding || HAS_TRAIT(H, TRAIT_HUSK) || HAS_TRAIT(H, TRAIT_SOUL_TRAPPED))
 		return
 	if((world.time - H.timeofdeath) > tlimit)
 		return
@@ -630,6 +630,8 @@
 
 				if (H.suiciding)
 					failed = span_warning("[req_defib ? "[defib]" : "[src]"] buzzes: Resuscitation failed - Recovery of patient impossible. Further attempts futile.")
+				else if (HAS_TRAIT(H, TRAIT_SOUL_TRAPPED))
+					failed = span_warning("[req_defib ? "[defib]" : "[src]"] buzzes: Resuscitation failed - Patient's soul does not belong to their body. Further attempts futile.")
 				else if (tplus > tlimit)
 					failed = span_warning("[req_defib ? "[defib]" : "[src]"] buzzes: Resuscitation failed - Body has decayed for too long. Further attempts futile.")
 				else if (!heart)
