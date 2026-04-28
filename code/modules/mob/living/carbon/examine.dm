@@ -251,6 +251,7 @@
 /// Returns death message for mob examine text
 /mob/living/carbon/proc/generate_death_examine_text()
 	var/t_He = p_They()
+	var/t_His = p_Their()
 	var/t_his = p_their()
 	var/t_is = p_are()
 
