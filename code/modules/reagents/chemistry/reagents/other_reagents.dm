@@ -2242,6 +2242,42 @@ Basically, we fill the time between now and 2s from now with hands based off the
 		if(need_mob_update)
 			return UPDATE_MOB_HEALTH
 
+/datum/reagent/water_of_life
+	name = "Water of Life"
+	description = "A shimmering liquid that heals the body and protects from harm."
+	color = "#44ccff"
+	taste_description = "pure vitality"
+	metabolization_rate = 2 * REAGENTS_METABOLISM
+
+/datum/reagent/water_of_life/on_mob_life(mob/living/carbon/affected_mob, delta_time, times_fired)
+	. = ..()
+	affected_mob.adjustBruteLoss(-2 * REM * delta_time)
+	affected_mob.adjustFireLoss(-2 * REM * delta_time)
+	affected_mob.adjustToxLoss(-1 * REM * delta_time)
+	affected_mob.adjustOxyLoss(-1 * REM * delta_time)
+	affected_mob.adjustStaminaLoss(-5 * REM * delta_time)
+	affected_mob.SetUnconscious(0)
+	affected_mob.SetParalyzed(0)
+	if(affected_mob.health > 50)
+		affected_mob.add_atom_colour("#44ccff", TEMPORARY_COLOUR_PRIORITY)
+
+/datum/reagent/water_of_death
+	name = "Water of Death"
+	description = "A dark, swirling liquid that bridges the gap between life and death."
+	color = "#331155"
+	taste_description = "cold nothingness"
+	metabolization_rate = 0.5 * REAGENTS_METABOLISM
+
+/datum/reagent/water_of_death/on_mob_life(mob/living/carbon/affected_mob, delta_time, times_fired)
+	. = ..()
+	if(affected_mob.stat == DEAD)
+		return
+	affected_mob.adjustToxLoss(3 * REM * delta_time)
+	affected_mob.adjustOxyLoss(2 * REM * delta_time)
+	affected_mob.adjustBruteLoss(1 * REM * delta_time)
+	if(DT_PROB(5, delta_time))
+		to_chat(affected_mob, span_warning("You feel the cold grip of death..."))
+
 /datum/reagent/ants
 	name = "Ants"
 	description = "A sample of a lost breed of Space Ants (formicidae bastardium tyrannus), they are well-known for ravaging the living shit out of pretty much anything."
