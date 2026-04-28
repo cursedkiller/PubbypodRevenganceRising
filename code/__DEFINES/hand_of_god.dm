@@ -31,6 +31,7 @@
 #define TRAIT_HOG_CULTIST "trait_hog_cultist"
 #define TRAIT_HOG_PROPHET "trait_hog_prophet"
 #define TRAIT_HOG "trait_handofgod"
+#define TRAIT_SOUL_TRAPPED "soul_trapped"
 #define COMSIG_HOG_FOLLOWER_GAINED "comsig_hog_follower_gained"
 #define COMSIG_HOG_FOLLOWER_LOST "comsig_hog_follower_lost"
 #define COMSIG_HOG_NEXUS_DESTROYED "comsig_hog_nexus_destroyed"
