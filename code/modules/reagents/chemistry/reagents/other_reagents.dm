@@ -198,17 +198,17 @@
 	required_drink_type = /datum/reagent/water
 	icon_state = "shotglassclear"
 
-/datum/glass_style/drinking_glass/water
-	required_drink_type = /datum/reagent/water
-	name = "glass of water"
+/datum/glass_style/drinking_glass/
+	required_drink_type = /datum/reagent/
+	name = "glass of "
 	desc = "The father of all refreshments."
 	icon_state = "glass_clear"
 
 /*
- *	Water reaction to turf
+ *	 reaction to turf
  */
 
-/datum/reagent/water/expose_turf(turf/exposed_turf, reac_volume)
+/datum/reagent//expose_turf(turf/exposed_turf, reac_volume)
 	. = ..()
 	if(!isopenturf(exposed_turf))
 		return
@@ -216,10 +216,10 @@
 	var/turf/open/open_turf = exposed_turf
 
 	if(reac_volume >= 5)
-		open_turf.MakeSlippery(TURF_WET_WATER, 10 SECONDS, min(reac_volume * 1.5 SECONDS, 60 SECONDS))
+		open_turf.MakeSlippery(TURF_WET_, 10 SECONDS, min(reac_volume * 1.5 SECONDS, 60 SECONDS))
 
 	for(var/mob/living/simple_animal/slime/slime in open_turf)
-		slime.apply_water()
+		slime.apply_()
 
 	var/obj/effect/hotspot/hotspot = (locate(/obj/effect/hotspot) in open_turf)
 	if(hotspot && !isspaceturf(open_turf))
@@ -234,10 +234,10 @@
 	open_turf.clean_turf_texture()
 
 /*
- *	Water reaction to an object
+ *	 reaction to an object
  */
 
-/datum/reagent/water/expose_obj(obj/exposed_obj, reac_volume)
+/datum/reagent//expose_obj(obj/exposed_obj, reac_volume)
 	. = ..()
 	exposed_obj.extinguish()
 	exposed_obj.acid_level = 0
@@ -253,10 +253,10 @@
 		qdel(hide)
 
 /*
- *	Water reaction to a mob
+ *	 reaction to a mob
  */
 
-/datum/reagent/water/expose_mob(mob/living/exposed_mob, method = TOUCH, reac_volume)//Splashing people with water can help put them out!
+/datum/reagent//expose_mob(mob/living/exposed_mob, method = TOUCH, reac_volume)//Splashing people with  can help put them out!
 	if(!istype(exposed_mob))
 		return
 	if(isoozeling(exposed_mob))
@@ -265,7 +265,7 @@
 			touch_mod = exposed_mob.getarmor(null, BIO) * 0.01
 		exposed_mob.blood_volume = max(exposed_mob.blood_volume - 30 * (1 - touch_mod), 0)
 		if(touch_mod < 0.9)
-			to_chat(exposed_mob, span_warning("The water causes you to melt away!"))
+			to_chat(exposed_mob, span_warning("The  causes you to melt away!"))
 	if(method == TOUCH)
 		exposed_mob.adjust_wet_stacks(reac_volume / 10)
 		exposed_mob.extinguish_mob()
@@ -2244,39 +2244,66 @@ Basically, we fill the time between now and 2s from now with hands based off the
 
 /datum/reagent/water_of_life
 	name = "Water of Life"
-	description = "A shimmering liquid that heals the body and protects from harm."
+	description = "A shimmering liquid that temporarily fortifies the body beyond its natural limits."
 	color = "#44ccff"
 	taste_description = "pure vitality"
-	metabolization_rate = 2 * REAGENTS_METABOLISM
+	metabolization_rate = 0.5 * REAGENTS_METABOLISM
+	var/total_healed = 0
+	var/max_healing = 200
+
+/datum/reagent/water_of_life/on_mob_metabolize(mob/living/carbon/affected_mob)
+	. = ..()
+	total_healed = 0
+	affected_mob.maxHealth += 5000
+	affected_mob.health += 5000
+	to_chat(affected_mob, span_notice("Your body is flooded with divine power! You feel invincible, but you sense this power will demand payment..."))
 
 /datum/reagent/water_of_life/on_mob_life(mob/living/carbon/affected_mob, delta_time, times_fired)
 	. = ..()
-	affected_mob.adjustBruteLoss(-2 * REM * delta_time)
-	affected_mob.adjustFireLoss(-2 * REM * delta_time)
-	affected_mob.adjustToxLoss(-1 * REM * delta_time)
-	affected_mob.adjustOxyLoss(-1 * REM * delta_time)
+	if(total_healed >= max_healing)
+		return
+	var/heal_amount = min(3 * REM * delta_time, max_healing - total_healed)
+	affected_mob.adjustBruteLoss(-heal_amount)
+	affected_mob.adjustFireLoss(-heal_amount)
+	affected_mob.adjustToxLoss(-heal_amount * 0.5)
+	affected_mob.adjustOxyLoss(-heal_amount * 0.5)
 	affected_mob.adjustStaminaLoss(-5 * REM * delta_time)
 	affected_mob.SetUnconscious(0)
 	affected_mob.SetParalyzed(0)
+	total_healed += heal_amount * 2.5
 	if(affected_mob.health > 50)
 		affected_mob.add_atom_colour("#44ccff", TEMPORARY_COLOUR_PRIORITY)
+
+/datum/reagent/water_of_life/on_mob_end_metabolize(mob/living/carbon/affected_mob)
+	. = ..()
+	affected_mob.maxHealth -= 5000
+	affected_mob.health -= 5000
+	to_chat(affected_mob, span_userdanger("The divine power abandons you! The borrowed vitality vanishes, leaving your true wounds behind!"))
+	if(affected_mob.health <= 0)
+		affected_mob.visible_message(span_danger("[affected_mob] collapses as the divine light fades!"))
+		affected_mob.death()
 
 /datum/reagent/water_of_death
 	name = "Water of Death"
 	description = "A dark, swirling liquid that bridges the gap between life and death."
 	color = "#331155"
 	taste_description = "cold nothingness"
-	metabolization_rate = 0.5 * REAGENTS_METABOLISM
+	metabolization_rate = 3 * REAGENTS_METABOLISM
+
+/datum/reagent/water_of_death/on_mob_metabolize(mob/living/carbon/affected_mob)
+	. = ..()
+	if(affected_mob.stat != DEAD)
+		var/datum/disease/heart_failure/D = new /datum/disease/heart_failure()
+		D.stage_prob = 20
+		affected_mob.ForceContractDisease(D, FALSE, TRUE)
 
 /datum/reagent/water_of_death/on_mob_life(mob/living/carbon/affected_mob, delta_time, times_fired)
 	. = ..()
 	if(affected_mob.stat == DEAD)
 		return
-	affected_mob.adjustToxLoss(3 * REM * delta_time)
-	affected_mob.adjustOxyLoss(2 * REM * delta_time)
-	affected_mob.adjustBruteLoss(1 * REM * delta_time)
-	if(DT_PROB(5, delta_time))
-		to_chat(affected_mob, span_warning("You feel the cold grip of death..."))
+	affected_mob.adjustOxyLoss(3 * REM * delta_time)
+	if(DT_PROB(10, delta_time))
+		to_chat(affected_mob, span_userdanger("You feel the cold grip of death tightening around your heart..."))
 
 /datum/reagent/ants
 	name = "Ants"
