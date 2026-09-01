@@ -421,7 +421,6 @@
 /obj/machinery/atmospherics/pipe/smart/manifold4w/supply/hidden,
 /obj/item/stack/rods,
 /obj/item/assembly/igniter,
-/obj/machinery/firealarm/directional/west,
 /turf/open/floor/pod,
 /area/shuttle/pirate)
 "mn" = (
@@ -2372,7 +2371,7 @@ Ej
 VX
 "}
 (15,1,1) = {"
-yS
+nP
 yS
 zb
 Ob
@@ -2386,7 +2385,7 @@ YJ
 yJ
 Tl
 yS
-yS
+nP
 "}
 (16,1,1) = {"
 HA
@@ -2475,7 +2474,7 @@ HA
 "}
 (21,1,1) = {"
 HA
-nP
+yS
 LI
 LI
 HA
@@ -2487,7 +2486,7 @@ LI
 HA
 LI
 LI
-nP
+yS
 HA
 "}
 (22,1,1) = {"
@@ -2527,7 +2526,7 @@ HA
 (24,1,1) = {"
 HA
 HA
-LI
+Ea
 HA
 HA
 HA
@@ -2537,7 +2536,7 @@ cZ
 HA
 HA
 HA
-LI
+Ea
 HA
 HA
 "}
